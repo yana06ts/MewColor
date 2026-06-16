@@ -1,0 +1,6 @@
+{
+  "name": "MeowColor: Pixel Cats 🎨",
+  "description": "Cozy pixel coloring game with cute kittens, boba cups, and a room decorator!",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
