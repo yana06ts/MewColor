@@ -670,7 +670,7 @@ export default function App() {
         {/* 3. COZY FOOTER NAV BAR */}
         {!selectedPuzzle && (
           <footer className="bg-white border-t border-rose-100/60 p-2 py-2.5 shrink-0 select-none z-10 px-4">
-            <div className="flex justify-around items-center">
+            <div className="grid grid-cols-3 gap-2 max-w-md mx-auto w-full">
               
               {([
                 { key: "puzzles", name: "Раскраски", icon: "🎨" },
@@ -686,14 +686,14 @@ export default function App() {
                       setActiveTab(tab.key);
                       SOUNDS.playPop(1.0);
                     }}
-                    className={`flex flex-col items-center justify-center p-1 px-8 rounded-xl transition-all relative cursor-pointer ${
+                    className={`flex flex-col items-center justify-center p-1 w-full rounded-xl transition-all relative cursor-pointer ${
                       isCurrent
-                        ? "text-rose-500 bg-rose-50/70 scale-105"
+                        ? "text-rose-500 bg-rose-50/70 scale-105 font-bold"
                         : "text-slate-500 hover:text-rose-400 hover:bg-rose-50/20"
                     }`}
                   >
                     <span className="text-lg leading-normal mb-0.5">{tab.icon}</span>
-                    <span className="text-[9px] font-pixel tracking-tighter opacity-90 scale-90">
+                    <span className="text-[10px] font-pixel tracking-tighter opacity-90">
                       {tab.name}
                     </span>
                     {/* Active small dot indicator */}

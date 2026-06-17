@@ -342,13 +342,13 @@ export function DecorationsTab({
                         {isDone ? (
                           <button
                             onClick={() => handleTogglePlaceItem("toy", toy.id, toy.name)}
-                            className={`px-3 py-1.5 rounded-xl text-[9px] font-pixel font-bold border transition-all cursor-pointer ${
+                            className={`px-2 py-1 rounded-lg text-[8px] font-pixel font-bold border transition-all cursor-pointer ${
                               isPlaced
                                 ? "bg-red-50 text-red-500 border-red-200/50 hover:bg-red-100/40"
                                 : "bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600"
                             }`}
                           >
-                            {isPlaced ? "✖ Убрать из дома" : "🏠 Поставить дома"}
+                            {isPlaced ? "✖ Убрать" : "🏠 Поставить"}
                           </button>
                         ) : (
                           <button
