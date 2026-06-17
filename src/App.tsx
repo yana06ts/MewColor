@@ -562,15 +562,6 @@ export default function App() {
                         >
                           {/* Pixel mosaic tiny representation preview window */}
                           <div className="aspect-square bg-rose-50/50 rounded-xl mb-2 p-1.5 flex items-center justify-center relative overflow-hidden group-hover:bg-rose-100/40">
-                            {/* Complete Stamp overlay badges */}
-                            {isDone && (
-                              <div className="absolute inset-0 bg-[#f43f5e50] backdrop-blur-xs flex items-center justify-center rotate-[-12deg] z-10">
-                                <span className="bg-rose-500 text-white text-[8px] font-pixel px-2 py-1 rounded-sm border border-white shadow-md uppercase">
-                                  ГОТОВО!
-                                </span>
-                              </div>
-                            )}
-
                             {/* Standard pixel matrix loop preview */}
                             <div
                               className="grid gap-[1px]"
@@ -681,7 +672,6 @@ export default function App() {
               {/* Confetti decoration */}
               <div className="absolute top-2 left-6 text-xl animate-pulse">✨</div>
               <div className="absolute top-4 right-8 text-xl animate-ping">🌸</div>
-              <div className="absolute bottom-6 left-10 text-xl animate-pulse">👑</div>
 
               <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-300">
                 <CheckCircle className="w-9 h-9 text-amber-500" />
@@ -694,18 +684,37 @@ export default function App() {
                 Твой чудесный пиксельный котик или вкусняшка сверкает яркими красками!
               </p>
 
-              {/* Reward Block */}
-              <div className="bg-amber-50 rounded-2xl p-4.5 border border-amber-200 inline-flex flex-col items-center mb-5 uppercase">
-                <span className="text-[10px] font-pixel text-amber-800">Твоя Награда:</span>
-                <span className="text-xl font-pixel text-amber-600 font-extrabold mt-1">
-                  +{levelCompleteModal.yarnEarned} моточков пряжи 🧶
-                </span>
-                <span className="text-[8px] text-amber-500 mt-1 font-pixel scale-85">
-                  (Потрать их в Магазинчике!)
-                </span>
-              </div>
+              {/* Finished drawing preview container */}
+              {selectedPuzzle && (
+                <div className="w-48 h-48 mx-auto mb-5 bg-[linear-gradient(135deg,#FFF9E6_0%,#FFF5D6_100%)] rounded-2xl p-3 border-4 border-amber-300 shadow-inner flex items-center justify-center relative overflow-hidden">
+                  <div
+                    className="grid gap-[1px]"
+                    style={{
+                      gridTemplateColumns: `repeat(${selectedPuzzle.width}, minmax(0, 1fr))`,
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
+                    {selectedPuzzle.rows.flatMap((rowStr) =>
+                      rowStr.split("").map((c, i) => {
+                        const num = c === "." ? 0 : parseInt(c, 10);
+                        const color = selectedPuzzle.colors.find((col) => col.number === num);
+                        return (
+                          <div
+                            key={i}
+                            className="rounded-xs"
+                            style={{
+                              backgroundColor: num === 0 ? "transparent" : color?.hex,
+                            }}
+                          />
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
 
-              {/* Close Button */}
+              {/* Close Button with Reward text */}
               <button
                 id="claim-reward-modal-btn"
                 onClick={() => {
@@ -715,7 +724,7 @@ export default function App() {
                 }}
                 className="w-full bg-amber-400 border-2 border-amber-500 p-3 font-pixel text-xs text-slate-950 rounded-2xl shadow-sm hover:bg-amber-300 active:scale-95 duration-100 cursor-pointer uppercase font-extrabold"
               >
-                ЗАБРАТЬ И ИДТИ ДАЛЬШЕ 🐾
+                ПОЛУЧИТЬ +{levelCompleteModal.yarnEarned} МОТКОВ ПРЯЖИ 🧶
               </button>
             </div>
           </div>
@@ -844,7 +853,7 @@ export default function App() {
                 <li className="flex gap-2">
                   <span className="text-base">4️⃣</span>
                   <p className="leading-tight">
-                    Используй волшебные инструменты: 🪄 палочка красит все соседние зоны одного цвета, 💣 бомбочка вычищает мелкие места, 🔍 лупа мгновенно находит спрятанный пиксель.
+                    Используй волшебные инструменты: 🪄 палочка красит все соседние зоны одного цвета, 💣 бомбочка вычищает мелкие места.
                   </p>
                 </li>
                 <li className="flex gap-2">
@@ -889,7 +898,7 @@ export default function App() {
               <div className="flex items-center gap-1.5 border-b border-rose-100 pb-3 mb-4">
                 <Settings className="w-5 h-5 text-rose-500" />
                 <h3 className="text-xs font-pixel text-rose-700 uppercase">
-                  Настройки Игры ⚙️
+                  Настройки Игры
                 </h3>
               </div>
 

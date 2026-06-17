@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PuzzleTemplate } from "../data/puzzles";
 import SOUNDS from "../utils/sound";
 import { motion, AnimatePresence } from "motion/react";
@@ -34,6 +34,8 @@ const CAT_MEOWS_TEXT = [
 ];
 
 export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
+  const roomRef = useRef<HTMLDivElement>(null);
+  
   // Try to load placed cats from local storage, or spawn first completed cat by default
   const [placedCats, setPlacedCats] = useState<PlacedCat[]>([]);
   const [isDay, setIsDay] = useState<boolean>(true);
@@ -42,6 +44,11 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
   const [wallpaper, setWallpaper] = useState<"stripes" | "stars" | "green">("stripes");
   const [activeSpeech, setActiveSpeech] = useState<{ [id: string]: string }>({});
   const [activeHeart, setActiveHeart] = useState<{ [id: string]: boolean }>({});
+
+  const placedCatsRef = useRef<PlacedCat[]>([]);
+  useEffect(() => {
+    placedCatsRef.current = placedCats;
+  }, [placedCats]);
 
   const unlockedCats = puzzleTemplates.filter(
     (p) => p.category === "cats" && completedPuzzles.includes(p.id)
@@ -148,6 +155,77 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
       return c;
     });
     savePlacedCats(updated);
+  };
+
+  // Start dragging a cat using native PointerEvents
+  const handlePointerDown = (e: React.PointerEvent, catId: string) => {
+    e.stopPropagation();
+    const container = roomRef.current;
+    if (!container) return;
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let hasMoved = false;
+    
+    const rect = container.getBoundingClientRect();
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+    
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      // Small threshold (4px) to distinguish tap from drag
+      if (Math.abs(moveEvent.clientX - startX) > 4 || Math.abs(moveEvent.clientY - startY) > 4) {
+        hasMoved = true;
+      }
+      if (!hasMoved) return;
+
+      const x = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+      const y = ((moveEvent.clientY - rect.top) / rect.height) * 100;
+      
+      const constrainedX = Math.max(12, Math.min(88, x));
+      const constrainedY = Math.max(35, Math.min(95, y)); // Allow dragging down into selection area
+      
+      setPlacedCats((prevCats) =>
+        prevCats.map((c) => (c.id === catId ? { ...c, x: constrainedX, y: constrainedY } : c))
+      );
+    };
+    
+    const handlePointerUp = (upEvent: PointerEvent) => {
+      target.releasePointerCapture(upEvent.pointerId);
+      container.removeEventListener("pointermove", handlePointerMove);
+      container.removeEventListener("pointerup", handlePointerUp);
+      
+      if (!hasMoved) {
+        // Retrieve cat and trigger standard tap response!
+        const cat = placedCatsRef.current.find((c) => c.id === catId);
+        if (cat) {
+          handleTapCat(cat);
+        }
+      } else {
+        const upRect = container.getBoundingClientRect();
+        const upY = ((upEvent.clientY - upRect.top) / upRect.height) * 100;
+        
+        // If dragged down near or over the shelf (y >= 83 or below stage lower boundary)
+        if (upY >= 83 || upEvent.clientY >= upRect.bottom - 15) {
+          // Remove the cat from the room!
+          setPlacedCats((prevCats) => {
+            const updated = prevCats.filter((c) => c.id !== catId);
+            localStorage.setItem("meowcolor_placed_cats", JSON.stringify(updated));
+            return updated;
+          });
+          SOUNDS.playPop(0.7);
+        } else {
+          SOUNDS.playPop(1.0);
+          // Persist coordinates
+          setPlacedCats((currentCats) => {
+            localStorage.setItem("meowcolor_placed_cats", JSON.stringify(currentCats));
+            return currentCats;
+          });
+        }
+      }
+    };
+    
+    container.addEventListener("pointermove", handlePointerMove);
+    container.addEventListener("pointerup", handlePointerUp);
   };
 
   // Drag simulation (tap repositioning is reliable on both mouse and touch frames)
@@ -260,6 +338,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
       {/* Main living space container */}
       <div
+        ref={roomRef}
         id="cozy-cat-room-stage"
         className={`flex-1 relative overflow-hidden transition-all duration-750 ease-in-out border-b-8 border-rose-950/20 ${
           isDay
@@ -314,15 +393,6 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
           </div>
           {/* Bricks footer */}
           <div className="w-26 h-3 bg-red-900 border-b border-red-950" />
-        </div>
-
-        {/* Warm Cat Scratching post */}
-        <div className="absolute bottom-[24%] right-6 flex flex-col items-center">
-          <div className="w-2 h-14 bg-amber-700 rounded-full border border-amber-950 relative">
-            <div className="w-4 h-1 bg-amber-800 absolute top-4 left-0" />
-            <div className="w-4 h-1 bg-amber-800 absolute top-8 left-0" />
-          </div>
-          <div className="w-12 h-2.5 bg-amber-900 rounded-full border border-amber-950" />
         </div>
 
         {/* Giant Cozy Rug (Floor center) */}
@@ -382,12 +452,13 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className="absolute z-10 group"
+              className="absolute z-10 group cursor-grab active:cursor-grabbing touch-none select-none"
               style={{
                 left: `${cat.x}%`,
                 top: `${cat.y}%`,
                 transform: "translate(-50%, -50%)",
               }}
+              onPointerDown={(e) => handlePointerDown(e, cat.id)}
             >
               {/* Dialogue / Speech Bubble Popup above cat */}
               <AnimatePresence>
@@ -397,7 +468,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: -45 }}
                     exit={{ opacity: 0 }}
-                    className="absolute left-1/2 -translate-x-1/2 bg-white text-slate-800 text-[10px] font-bold p-1.5 px-2.5 rounded-xl border border-rose-200 shadow-md whitespace-nowrap z-50 text-center"
+                    className="absolute left-1/2 -translate-x-1/2 bg-white text-slate-800 text-[10px] font-bold p-1.5 px-2.5 rounded-xl border border-rose-200 shadow-md whitespace-nowrap z-50 text-center pointer-events-none"
                   >
                     {speech}
                     {/* Tiny bubble arrow */}
@@ -413,7 +484,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
                     key="heart"
                     initial={{ opacity: 1, y: -20, scale: 0.8 }}
                     animate={{ opacity: 0, y: -80, scale: 1.5 }}
-                    className="absolute left-1/2 -translate-x-1/2 text-red-500 z-50"
+                    className="absolute left-1/2 -translate-x-1/2 text-red-500 z-50 pointer-events-none"
                   >
                     <Heart className="w-5 h-5 fill-current" />
                   </motion.div>
@@ -423,30 +494,35 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
               {/* Cat Reposition D-PAD Overlay when hovering or tapping on it */}
               <div className="absolute -top-10 -left-6 hidden group-hover:flex gap-0.5 bg-slate-900/80 p-0.5 rounded-md shadow-lg z-50 select-none">
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "left")}
                   className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   ←
                 </button>
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "right")}
                   className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   →
                 </button>
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "up")}
                   className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   ↑
                 </button>
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "down")}
                   className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   ↓
                 </button>
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleRemoveCat(cat.id)}
                   className="px-1 text-[8px] font-pixel text-red-400 hover:bg-red-500/20 rounded-sm cursor-pointer ml-1"
                   title="Убрать"
@@ -457,8 +533,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
               {/* The actual Pixel Cat graphics, rendered as absolute gorgeous interactive component */}
               <div
-                onClick={() => handleTapCat(cat)}
-                className={`relative cursor-pointer transition-transform duration-200 transform ${
+                className={`relative transition-transform duration-200 transform ${
                   cat.flipped ? "scale-x-[-1]" : ""
                 } ${cat.isSleeping ? "opacity-90 saturate-75 shadow-inner" : "hover:scale-115"}`}
               >
