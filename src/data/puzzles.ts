@@ -7,7 +7,7 @@ export interface ColorInfo {
 export interface PuzzleTemplate {
   id: string;
   name: string;
-  category: "all" | "cats" | "cozy food" | "plants & buds" | "toys" | "magic" | "custom";
+  category: "all" | "cats" | "cozy food" | "plants & buds" | "toys" | "custom";
   width: number;
   height: number;
   rows: string[];
@@ -17,30 +17,10 @@ export interface PuzzleTemplate {
   description: string;
 }
 
-export const COLOR_PALETTES = {
-  softCharcoal: "#2F2E36",
-  creamyBody: "#FFF4E0",
-  orangeGinger: "#FFAC5E",
-  berryRed: "#FF5277",
-  pinkCheeks: "#FF8A80",
-  leafGreen: "#4CE091",
-  toastCrust: "#B56F3F",
-  creamBread: "#FFF7D6",
-  dustyGray: "#BEC2CB",
-  boxBrown: "#C59B6D",
-  soilBrown: "#8D6E63",
-  mushCap: "#FF4E50",
-  whiteSpot: "#FFFBEB",
-  violetPotion: "#8E24AA",
-  pinkGlaze: "#FF80AB",
-  chocolate: "#3E2723",
-  mintCream: "#69F0AE",
-};
-
 export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
   {
     id: "siamese_cat",
-    name: "Siamese Sweetie 💙",
+    name: "Сиамский очаровашка 💙",
     category: "cats",
     width: 16,
     height: 16,
@@ -63,20 +43,20 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       ".....11..11....."
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Soft Charcoal Outline" },
-      { number: 2, hex: "#FFF8E7", name: "Warm Ivory Cream" },
-      { number: 3, hex: "#7D5A44", name: "Cocoa Ears & Tail" },
-      { number: 4, hex: "#4E342E", name: "Chocolate Brown Mask" },
-      { number: 5, hex: "#42A5F5", name: "Shiny Sapphire Eyes" },
-      { number: 6, hex: "#FF8A80", name: "Rosy Suede Blush" }
+      { number: 1, hex: "#2F2E36", name: "Контур" },
+      { number: 2, hex: "#FFF8E7", name: "Тёплый крем" },
+      { number: 3, hex: "#7D5A44", name: "Какао-ушки" },
+      { number: 4, hex: "#4E342E", name: "Шоколадная маска" },
+      { number: 5, hex: "#42A5F5", name: "Глазки-сапфиры" },
+      { number: 6, hex: "#FF8A80", name: "Нежные щёчки" }
     ],
     difficulty: "Expert",
     yarnReward: 110,
-    description: "A gorgeous Siamese kitten with a soft cocoa face mask and deep blue sapphire eyes."
+    description: "Благородный сиамский котёнок с какао-маской и сверкающими сапфировыми глазками."
   },
   {
     id: "ginger_munchkin",
-    name: "Ginger Munchkin 🧡",
+    name: "Рыжий Манчкин 🧡",
     category: "cats",
     width: 16,
     height: 16,
@@ -99,19 +79,19 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Deep Charcoal" },
-      { number: 2, hex: "#FF8A80", name: "Peach Blossom Cheeks" },
-      { number: 3, hex: "#FFA726", name: "Bright Tangerine" },
-      { number: 4, hex: "#E65100", name: "Burnt Orange Stripes" },
-      { number: 5, hex: "#1E1F22", name: "Tiny Button Eyes" }
+      { number: 1, hex: "#2F2E36", name: "Тёмный уголь" },
+      { number: 2, hex: "#FF8A80", name: "Розовые щёчки" },
+      { number: 3, hex: "#FFA726", name: "Яркий мандарин" },
+      { number: 4, hex: "#E65100", name: "Огненные полоски" },
+      { number: 5, hex: "#1E1F22", name: "Чёрные глазки" }
     ],
     difficulty: "Medium",
     yarnReward: 95,
-    description: "An energetic little ginger cat with playful stripes and adorable puffy cheeks."
+    description: "Шустрый рыжий котейка с золотистыми полосками и пухлыми радостными щеками."
   },
   {
     id: "royal_white_cat",
-    name: "Princess Fluff 👑",
+    name: "Принцесса Пушинка 👑",
     category: "cats",
     width: 16,
     height: 16,
@@ -135,19 +115,19 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
     ],
     colors: [
       { number: 1, hex: "#2F2E36", name: "Midnight Charcoal" },
-      { number: 2, hex: "#FFFFFF", name: "Pristine White Fur" },
-      { number: 3, hex: "#FFC107", name: "Golden Royal Crown" },
-      { number: 4, hex: "#FF4081", name: "Imperial Ruby Gem" },
-      { number: 5, hex: "#FF8A80", name: "Pink Inner Ears" },
-      { number: 6, hex: "#00E676", name: "Gleaming Emerald Eyes" }
+      { number: 2, hex: "#FFFFFF", name: "Чистый снежный мех" },
+      { number: 3, hex: "#FFC107", name: "Золотая корона" },
+      { number: 4, hex: "#FF4081", name: "Рубиновые Камни" },
+      { number: 5, hex: "#FF8A80", name: "Розовые ушки" },
+      { number: 6, hex: "#00E676", name: "Изумрудные глазки" }
     ],
     difficulty: "Expert",
     yarnReward: 120,
-    description: "A regal white Persian princess cat wearing her favourite golden crown and showing off mesmerizing emerald eyes."
+    description: "Царственная белая персидская леди в красивейшей короне с изумрудным взглядом."
   },
   {
     id: "calico_cat",
-    name: "Calico Neko 🐾",
+    name: "Трёхцветный Калико 🐾",
     category: "cats",
     width: 16,
     height: 16,
@@ -170,19 +150,19 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Charcoal Outline" },
-      { number: 2, hex: "#FFF4E0", name: "Vanilla Milk" },
-      { number: 3, hex: "#FFAC5E", name: "Ginger Caramel" },
-      { number: 4, hex: "#5A5A66", name: "Slate Grey Patch" },
-      { number: 5, hex: "#FF8A80", name: "Cherry Blush" }
+      { number: 1, hex: "#2F2E36", name: "Контур угля" },
+      { number: 2, hex: "#FFF4E0", name: "Ванильное молочко" },
+      { number: 3, hex: "#FFAC5E", name: "Карамельный рыжий" },
+      { number: 4, hex: "#5A5A66", name: "Пятнышко серого сланца" },
+      { number: 5, hex: "#FF8A80", name: "Нежные щёчки" }
     ],
     difficulty: "Medium",
     yarnReward: 90,
-    description: "A super soft and curious Calico kitten with ginger and charcoal ears."
+    description: "Невероятно ласковый пушистый калико с забавными рыжими и благородными серыми ушками."
   },
   {
     id: "box_cat",
-    name: "Peek-A-Box 📦",
+    name: "Котик в коробочке 📦",
     category: "cats",
     width: 16,
     height: 16,
@@ -198,255 +178,172 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "1333333333333331",
       "1343777777773431",
       "1343717777173431",
-      "1333777777773331",
+      "1343777777773431",
       "1133333333333111",
       "..11333333311...",
       "....11111111....",
       "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Cozy Charcoal" },
-      { number: 2, hex: "#D6D9E0", name: "Dusty Pewter" },
-      { number: 3, hex: "#C59B6D", name: "Cardboard Brown" },
-      { number: 4, hex: "#9A724B", name: "Deep Wood Shadow" },
-      { number: 5, hex: "#FF8A80", name: "Cute Cheeks" },
-      { number: 6, hex: "#1E1F22", name: "Button Eyes" },
-      { number: 7, hex: "#FFFFFF", name: "Pure White Fluff" }
+      { number: 1, hex: "#2F2E36", name: "Вечерний уголь" },
+      { number: 2, hex: "#D6D9E0", name: "Пыльный серый" },
+      { number: 3, hex: "#C59B6D", name: "Картонный бурый" },
+      { number: 4, hex: "#9A724B", name: "Древесная тень" },
+      { number: 5, hex: "#FF8A80", name: "Румяна милашки" },
+      { number: 6, hex: "#1E1F22", name: "Бусинки-глазки" },
+      { number: 7, hex: "#FFFFFF", name: "Белый пух" }
     ],
     difficulty: "Expert",
     yarnReward: 115,
-    description: "If it fits, I sits! This cute kitty found the absolute perfect box."
+    description: "Раз коробка, два коробка — котик сразу запрыгнул в своё идеальное укрытие!"
   },
   {
-    id: "cute_strawberry",
-    name: "Sweet Berry 🍓",
-    category: "plants & buds",
-    width: 12,
-    height: 12,
-    rows: [
-      "....444.....",
-      "...44444....",
-      "..1441441...",
-      ".122222221..",
-      "12225225221.",
-      "12522222221.",
-      "12222522521.",
-      "13222222221.",
-      ".122522521..",
-      "..1222221...",
-      "...13331....",
-      "....111....."
-    ],
-    colors: [
-      { number: 1, hex: "#2F2E36", name: "Dark Indigo" },
-      { number: 2, hex: "#FF5277", name: "Strawberry Red" },
-      { number: 3, hex: "#FFA6C9", name: "Blush Highlight" },
-      { number: 4, hex: "#4CE091", name: "Spring leaf" },
-      { number: 5, hex: "#FFFBEB", name: "Creamy Seeds" }
-    ],
-    difficulty: "Easy",
-    yarnReward: 40,
-    description: "A cute little strawberry with small blushing cheeks and fresh green leaves."
-  },
-  {
-    id: "glazed_donut",
-    name: "Kitty Glazed Ring 🍩",
-    category: "cozy food",
-    width: 12,
-    height: 12,
-    rows: [
-      "....1111....",
-      "..11333311..",
-      ".1334335331.",
-      "136333333331",
-      "133311113331",
-      "13531..13431",
-      "123311113321",
-      "122336333221",
-      ".1222333221.",
-      "..12222221..",
-      "...111111...",
-      "............"
-    ],
-    colors: [
-      { number: 1, hex: "#3E2723", name: "Rich Cocoa Paint" },
-      { number: 2, hex: "#FFE082", name: "Warm Dough Nut" },
-      { number: 3, hex: "#FF80AB", name: "Pink Berry Frosting" },
-      { number: 4, hex: "#FFFFFF", name: "Sugar Frosting" },
-      { number: 5, hex: "#69F0AE", name: "Pistachio Crumb" },
-      { number: 6, hex: "#E040FB", name: "Ube Purple Sprinkles" }
-    ],
-    difficulty: "Medium",
-    yarnReward: 60,
-    description: "A soft fluffy doughnut with strawberry pink frosting and colorful pixel sprinkles."
-  },
-  {
-    id: "cute_mushroom",
-    name: "Tiny Shroom 🍄",
-    category: "plants & buds",
-    width: 12,
-    height: 12,
-    rows: [
-      "....1111....",
-      "..11222211..",
-      ".1232232221.",
-      "122222223221",
-      "132232222231",
-      "111111111111",
-      "...144441...",
-      "...141141...",
-      "...144441...",
-      "..15144151..",
-      ".1555115551.",
-      "..11111111.."
-    ],
-    colors: [
-      { number: 1, hex: "#2F2E36", name: "Outliner Charcoal" },
-      { number: 2, hex: "#FF4E50", name: "Amanita Red" },
-      { number: 3, hex: "#FFFBEB", name: "Shroom Spots" },
-      { number: 4, hex: "#FFF3E0", name: "Woodland Stem" },
-      { number: 5, hex: "#81C784", name: "Spring Moss" }
-    ],
-    difficulty: "Easy",
-    yarnReward: 45,
-    description: "A baby forest mushroom cozying up on fresh green grass."
-  },
-  {
-    id: "kitty_toast",
-    name: "Kuten Toast 🍞",
-    category: "cozy food",
-    width: 14,
-    height: 14,
-    rows: [
-      "..............",
-      "...11111111...",
-      "..1222222211..",
-      ".122333333221.",
-      "12233333333211",
-      "12334433443321",
-      "12334433443321",
-      "12333333333321",
-      "12331331333321",
-      "12353313353321",
-      "12333333333321",
-      ".122333333221.",
-      "..1122222211..",
-      "....111111...."
-    ],
-    colors: [
-      { number: 1, hex: "#4A2711", name: "Dark Rye" },
-      { number: 2, hex: "#B56F3F", name: "Oat Toast Crust" },
-      { number: 3, hex: "#FFF7D6", name: "Creamy Brioche" },
-      { number: 4, hex: "#FF5277", name: "Berry Jam Spots" },
-      { number: 5, hex: "#FF8A80", name: "Blush Hue" }
-    ],
-    difficulty: "Medium",
-    yarnReward: 75,
-    description: "Freshly toasted bread cut in the shape of a happy, blushing kitty."
-  },
-  {
-    id: "happy_cactus",
-    name: "Spiky Pot 🌵",
-    category: "plants & buds",
-    width: 12,
-    height: 12,
-    rows: [
-      ".....161....",
-      "....16661...",
-      "...1133311..",
-      "..121333121.",
-      ".12213331221",
-      ".12213331221",
-      "..111333111.",
-      "....1551....",
-      "...144441...",
-      "...144441...",
-      "..14444441..",
-      "...111111..."
-    ],
-    colors: [
-      { number: 1, hex: "#2F2E36", name: "Outliner Charcoal" },
-      { number: 2, hex: "#4CAF50", name: "Forest Cacti" },
-      { number: 3, hex: "#81C784", name: "Sage Light Green" },
-      { number: 4, hex: "#FF7043", name: "Terracotta Pot" },
-      { number: 5, hex: "#8D6E63", name: "Organic Dirt" },
-      { number: 6, hex: "#FF4081", name: "Cactus Flower Pink" }
-    ],
-    difficulty: "Medium",
-    yarnReward: 70,
-    description: "A spiky but extremely happy little cactus pot with a tiny blossoming pink flower."
-  },
-  {
-    id: "sleepy_chubby",
-    name: "Loafing Kuro 🐈‍⬛",
+    id: "samurai_cat",
+    name: "Сонный Самурай ⚔️",
     category: "cats",
     width: 16,
     height: 16,
     rows: [
       "................",
-      ".....11....11...",
-      "....1221..1221..",
-      "...123321123321.",
-      "..12333322333321",
-      "..12333333333321",
-      ".123443333334431",
-      ".123151322315131",
-      "1233311111111331",
-      "1233333555533331",
-      "1233335555553331",
-      "1233335555553331",
-      ".123333555533321",
-      "..111222222211..",
+      "....33....33....",
+      "...3333..3333...",
+      "..331111111133..",
+      "..311222222113..",
+      ".11222222222211.",
+      "1122442222442211",
+      "1224554224554221",
+      "1224445225444221",
+      ".12222455422221.",
+      "..112222222211..",
+      "...1116226111...",
+      "....14622641....",
+      "....14222241....",
+      "....11222211....",
+      ".....11..11....."
+    ],
+    colors: [
+      { number: 1, hex: "#1A1A1A", name: "Тёмный шлем" },
+      { number: 2, hex: "#E53935", name: "Красная броня" },
+      { number: 3, hex: "#FFD54F", name: "Золотые рога" },
+      { number: 4, hex: "#FFCC80", name: "Рыжая шёрстка" },
+      { number: 5, hex: "#FFFFFF", name: "Блики шлема/Усы" },
+      { number: 6, hex: "#4E342E", name: "Рукоять катаны" }
+    ],
+    difficulty: "Expert",
+    yarnReward: 125,
+    description: "Отважный воин-самурай, защищающий покой всей кошачьей комнаты!"
+  },
+
+  /* COZY FOOD (ALL IN 16x16 HIGHLY DETAILED RESOLUTION) */
+  {
+    id: "cute_strawberry",
+    name: "Спелая Клубничка 🍓",
+    category: "cozy food",
+    width: 16,
+    height: 16,
+    rows: [
+      "................",
+      "......4444......",
+      ".....444444.....",
+      "....44411444....",
+      "...4411221144...",
+      "..111222222111..",
+      ".12222522522221.",
+      "1225222222225221",
+      "1222225225222221",
+      "1252222222225221",
+      ".12222522522221.",
+      "..122222222221..",
+      "...1322222231...",
+      "....13223331....",
+      ".....111111.....",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#2F2E36", name: "Контур ягоды" },
+      { number: 2, hex: "#FF2A55", name: "Сочный алый" },
+      { number: 3, hex: "#FFA6C9", name: "Розовый бочок" },
+      { number: 4, hex: "#3CD070", name: "Свежая листва" },
+      { number: 5, hex: "#FFFEE0", name: "Сладкие косточки" }
+    ],
+    difficulty: "Medium",
+    yarnReward: 80,
+    description: "Большая наливная садовая клубничка с милейшими румяными щёчками и листочками."
+  },
+  {
+    id: "glazed_donut",
+    name: "Пончик-Котик 🍩",
+    category: "cozy food",
+    width: 16,
+    height: 16,
+    rows: [
+      "................",
+      ".....111111.....",
+      "...1133333311...",
+      "..133353363331..",
+      ".13333333334331.",
+      "1363311111133331",
+      "1333112222115331",
+      "1333122222213361",
+      "1353122222213331",
+      "1333112222113431",
+      "1233311111133321",
+      ".12233363333221.",
+      "..122222222221..",
+      "...1122222211...",
+      ".....111111.....",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#3E2723", name: "Шоколадный контур" },
+      { number: 2, hex: "#FFE082", name: "Душистое тесто" },
+      { number: 3, hex: "#FF80AB", name: "Глазурь из лесной черники" },
+      { number: 4, hex: "#FFFFFF", name: "Кокосовые хлопья" },
+      { number: 5, hex: "#69F0AE", name: "Зелёная посыпка" },
+      { number: 6, hex: "#E91E63", name: "Вишнёвая посыпка" }
+    ],
+    difficulty: "Medium",
+    yarnReward: 85,
+    description: "Аппетитный, мягкий пончик в форме ушастой кошачьей мордочки с густой розовой глазурью."
+  },
+  {
+    id: "kitty_toast",
+    name: "Тост-Кошечка 🍞",
+    category: "cozy food",
+    width: 16,
+    height: 16,
+    rows: [
+      "................",
+      "....11111111....",
+      "...1222222221...",
+      "..122111111221..",
+      ".12213333331221.",
+      "1221334433411221",
+      "1213334433431121",
+      "1213333333333121",
+      "1213353333533121",
+      "1213333113333121",
+      "1213333333333121",
+      ".12133333333121.",
+      "..121111111121..",
+      "...1222222221...",
       "....11111111....",
       "................"
     ],
     colors: [
-      { number: 1, hex: "#1A1A1A", name: "Onyx Outline" },
-      { number: 2, hex: "#2C2C2C", name: "Midnight Obsidian Coat" },
-      { number: 3, hex: "#424242", name: "Dusky Slate Grey" },
-      { number: 4, hex: "#FF8A80", name: "Peach Blossom Cheeks" },
-      { number: 5, hex: "#FFFFFF", name: "Snow White Paws & Snoot" }
-    ],
-    difficulty: "Expert",
-    yarnReward: 110,
-    description: "A gorgeous premium Kuro cat styled as a cozy loaf with a midnight obsidian coat and soft white socks."
-  },
-  {
-    id: "bubble_tea",
-    name: "Neko Boba Cup 🧋",
-    category: "cozy food",
-    width: 14,
-    height: 13,
-    rows: [
-      "....55........",
-      "....151.......",
-      "...11511......",
-      "..1333331.....",
-      "..1444441.....",
-      "..1333331.....",
-      "..1333331.....",
-      "..1222221.....",
-      "..1222221.....",
-      "..1262621.....",
-      "..1262621.....",
-      "...12221......",
-      "....111......."
-    ],
-    colors: [
-      { number: 1, hex: "#2F2E36", name: "Boba Ink" },
-      { number: 2, hex: "#D7CCC8", name: "Brown Sugar Milk" },
-      { number: 3, hex: "#FFE0B2", name: "Classic Boba Tea" },
-      { number: 4, hex: "#FFFFFF", name: "Thick Cold Foam" },
-      { number: 5, hex: "#FF7043", name: "Red Cat Straw" },
-      { number: 6, hex: "#4E342E", name: "Tapioca Pearls" }
+      { number: 1, hex: "#4A2711", name: "Кофейная корочка" },
+      { number: 2, hex: "#B56F3F", name: "Румяный запек" },
+      { number: 3, hex: "#FFF7D6", name: "Тёплый мякиш хлеба" },
+      { number: 4, hex: "#FF5277", name: "Клубничный сладкий джем" },
+      { number: 5, hex: "#FF8A80", name: "Милое румянце" }
     ],
     difficulty: "Medium",
     yarnReward: 90,
-    description: "Delicious brown sugar bubble milk tea complete with tapioca pearls."
+    description: "Хрустящий тост, обжаренный в тостере до золотистого кошачьего силуэта с ягодным джемом."
   },
   {
     id: "cat_bento_box",
-    name: "Cat Bento Box 🍱",
+    name: "Кото-Бенто 🍱",
     category: "cozy food",
     width: 16,
     height: 16,
@@ -469,58 +366,22 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "1111111111111111"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Charcoal Box & Outlines" },
-      { number: 2, hex: "#FFFFFF", name: "Onigiri Cat Rice" },
-      { number: 3, hex: "#FFC107", name: "Tamagoyaki Omelette" },
-      { number: 4, hex: "#FF5722", name: "Octopus Sausage" },
-      { number: 5, hex: "#81C784", name: "Fresh Broccoli" },
-      { number: 6, hex: "#E91E63", name: "Plum Pickle Core" },
-      { number: 7, hex: "#FFE082", name: "Cozy Wood Tray Border" },
-      { number: 8, hex: "#FFE0B2", name: "Cream Highlights" }
+      { number: 1, hex: "#2F2E36", name: "Основа коробочки" },
+      { number: 2, hex: "#FFFFFF", name: "Онигири-рис" },
+      { number: 3, hex: "#FFC107", name: "Резаный омлетик" },
+      { number: 4, hex: "#FF5722", name: "Сосиски осьминожки" },
+      { number: 5, hex: "#81C784", name: "Свежая капуста брокколи" },
+      { number: 6, hex: "#E91E63", name: "Ягодные дольки" },
+      { number: 7, hex: "#FFE082", name: "Полочки шкатулки" },
+      { number: 8, hex: "#FFE0B2", name: "Кусочки рыбки" }
     ],
     difficulty: "Expert",
     yarnReward: 120,
-    description: "An incredibly detailed and complex Japanese-style bento box featuring cat-shaped rice onigiri, fresh broccoli, and cute octopus sausages!"
-  },
-  {
-    id: "succulent_terrarium",
-    name: "Glass Succulent 🌿",
-    category: "plants & buds",
-    width: 16,
-    height: 16,
-    rows: [
-      "......1111......",
-      "....11777711....",
-      "...1777777771...",
-      "..177331133771..",
-      ".17733313333771.",
-      ".17353313353371.",
-      "1733331113333371",
-      "1711112222111171",
-      "1722222222222271",
-      "1722662222662271",
-      "1726666226666271",
-      "1722662222662271",
-      ".17222222222271.",
-      "..177777777711..",
-      "...1111111111...",
-      "................"
-    ],
-    colors: [
-      { number: 1, hex: "#3E2723", name: "Terrarium Mahogany Stand" },
-      { number: 2, hex: "#8D6E63", name: "Organic Coarse Soil" },
-      { number: 3, hex: "#26A69A", name: "Mint Succulent Petals" },
-      { number: 5, hex: "#FF8A80", name: "Blushing Succulent Tips" },
-      { number: 6, hex: "#4CAF50", name: "Woodland Floor Moss" },
-      { number: 7, hex: "#E0F7FA", name: "Pristine Glass Flares" }
-    ],
-    difficulty: "Expert",
-    yarnReward: 110,
-    description: "A gorgeous, intricate glass terrarium jar housing blooming mint-pink succulents resting on layers of organic fertile soil and forest moss."
+    description: "Японский ланч-бокс с рисом в форме ушек, сосисками-осьминожками и яркой аппетитной зеленью."
   },
   {
     id: "pancake_tower",
-    name: "Super Pancake Tower 🥞",
+    name: "Блинная Пирамида 🥞",
     category: "cozy food",
     width: 16,
     height: 16,
@@ -543,22 +404,22 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Outline syrup brown" },
-      { number: 2, hex: "#FFD54F", name: "Melting Sweet Butter" },
-      { number: 3, hex: "#FFE082", name: "Warm Golden Pancake Fluff" },
-      { number: 4, hex: "#FFB74D", name: "Maple Syrup Glaze" },
-      { number: 5, hex: "#FF4081", name: "Spiced Cherry Topping" },
-      { number: 6, hex: "#E91E63", name: "Raspberry Jam" },
-      { number: 7, hex: "#CFD8DC", name: "Porcelain Plate" },
-      { number: 8, hex: "#B0BEC5", name: "Plate Soft Shadow" }
+      { number: 1, hex: "#2F2E36", name: "Какао-сироп" },
+      { number: 2, hex: "#FFD54F", name: "Кусочек тающего масла" },
+      { number: 3, hex: "#FFE082", name: "Золотистые блинчики" },
+      { number: 4, hex: "#FFB74D", name: "Кленовый густой мёд" },
+      { number: 5, hex: "#FF4081", name: "Ягоды спелой малины" },
+      { number: 6, hex: "#E91E63", name: "Малиновый джем" },
+      { number: 7, hex: "#CFD8DC", name: "Фарфоровое блюдо" },
+      { number: 8, hex: "#B0BEC5", name: "Мягкая тень тарелки" }
     ],
     difficulty: "Expert",
     yarnReward: 130,
-    description: "An elegant and complex stack of pancakes with sweet honey syrup, fresh berries, raspberry jam, and a melting slice of butter."
+    description: "Ароматная стопка бабушкиных панкейков, политых сладким сиропом, с кусочком нежного сливочного масла на самой вершине."
   },
   {
     id: "cat_ramen",
-    name: "Cozy Cat Ramen 🍜",
+    name: "Насыщенный Рамен 🍜",
     category: "cozy food",
     width: 16,
     height: 16,
@@ -581,20 +442,130 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Charcoal Bowl/Details" },
-      { number: 2, hex: "#FAFAFA", name: "Pristine egg-white" },
-      { number: 3, hex: "#FFB300", name: "Tasty Golden Noodles" },
-      { number: 4, hex: "#FFA726", name: "Tasty Pork/Naruto" },
-      { number: 5, hex: "#4CAF50", name: "Fresh Green Scallions" },
-      { number: 6, hex: "#E53935", name: "Red Bowl Accent" }
+      { number: 1, hex: "#2F2E36", name: "Контур пиалы/Детали" },
+      { number: 2, hex: "#FAFAFA", name: "Куриное яичко" },
+      { number: 3, hex: "#FFB300", name: "Пшеничная яичная лапша" },
+      { number: 4, hex: "#FFA726", name: "Свинина тясю / Наруто" },
+      { number: 5, hex: "#4CAF50", name: "Зелёный свежий лучок" },
+      { number: 6, hex: "#E53935", name: "Красный орнамент чаши" }
     ],
     difficulty: "Expert",
     yarnReward: 125,
-    description: "A delightful, complex bowl of hot cat ramen complete with juicy sliced pork, fresh scallions, broth, and hand-pulled noodles."
+    description: "Горячая глубокая чаша рамена с сочным бульоном, лапшой, нежным желтком яйца и ароматными травами."
+  },
+
+  /* PLANTS AND BUDS (ALL IN HIGHLY DETAILED 16x16 RESOLUTION) */
+  {
+    id: "cute_mushroom",
+    name: "Лесной Грибочек 🍄",
+    category: "plants & buds",
+    width: 16,
+    height: 16,
+    rows: [
+      "................",
+      "......1111......",
+      "....11222211....",
+      "...1223223221...",
+      "..122222222221..",
+      ".12322322232221.",
+      "1222222222222221",
+      "1111111111111111",
+      "....14444441....",
+      "....14544541....",
+      "....14444441....",
+      "....14444441....",
+      "...1614444161...",
+      "..166611116661..",
+      "..111111111111..",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#2F2E36", name: "Контур мухомора" },
+      { number: 2, hex: "#FF4E50", name: "Красная шляпка" },
+      { number: 3, hex: "#FFFBEB", name: "Белые пятнушки" },
+      { number: 4, hex: "#FFF3E0", name: "Ножка гриба" },
+      { number: 5, hex: "#FF8A80", name: "Румяна милашки" },
+      { number: 6, hex: "#5C9A67", name: "Лесной сочный мох" }
+    ],
+    difficulty: "Medium",
+    yarnReward: 85,
+    description: "Очаровательный лесной грибок с забавными пятнышками, выглядывающий из мягкого травянистого мха."
+  },
+  {
+    id: "happy_cactus",
+    name: "Радостный Кактус 🌵",
+    category: "plants & buds",
+    width: 16,
+    height: 16,
+    rows: [
+      "......161.......",
+      ".....16661......",
+      "....1133311.....",
+      "...121333121....",
+      "..12213331221...",
+      ".1222133312221..",
+      ".1221133311221..",
+      "..11113331111...",
+      ".....15551......",
+      "....1444441.....",
+      "....1444441.....",
+      "...144444441....",
+      "...144444441....",
+      "..14444444441...",
+      "...111111111....",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#2F2E36", name: "Тёмный штрих" },
+      { number: 2, hex: "#4CAF50", name: "Семейство суккулентов" },
+      { number: 3, hex: "#81C784", name: "Нежные зелёные стебельки" },
+      { number: 4, hex: "#FF7043", name: "Глиняный горшочек" },
+      { number: 5, hex: "#8D6E63", name: "Питательный грунт" },
+      { number: 6, hex: "#FF4081", name: "Розовые цветочные почки" }
+    ],
+    difficulty: "Medium",
+    yarnReward: 85,
+    description: "Любящий тепло комнатный кактус в терракотовом горшочке, который внезапно расцвёл розовыми бутонами."
+  },
+  {
+    id: "succulent_terrarium",
+    name: "Суккулент в стекле 🌿",
+    category: "plants & buds",
+    width: 16,
+    height: 16,
+    rows: [
+      "......1111......",
+      "....11777711....",
+      "...1777777771...",
+      "..177331133771..",
+      ".17733313333771.",
+      ".17353313353371.",
+      "1733331113333371",
+      "1711112222111171",
+      "1722222222222271",
+      "1722662222662271",
+      "1726666226666271",
+      "1722662222662271",
+      ".17222222222271.",
+      "..177777777711..",
+      "...1111111111...",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#3E2723", name: "Подставка из махагони" },
+      { number: 2, hex: "#8D6E63", name: "Слои рыхлой почвы" },
+      { number: 3, hex: "#26A69A", name: "Листочки суккулента" },
+      { number: 5, hex: "#FF8A80", name: "Розовые кончики розеток" },
+      { number: 6, hex: "#4CAF50", name: "Декоративный мох" },
+      { number: 7, hex: "#E0F7FA", name: "Блики стеклянного купола" }
+    ],
+    difficulty: "Expert",
+    yarnReward: 110,
+    description: "Миниатюрный сад за стеклом: мясистые мятно-розовые листья на слоях речного песка и лесного зелёного мха."
   },
   {
     id: "giant_monstera",
-    name: "Giant Monstera 🌿",
+    name: "Гигантская Монстера 🌿",
     category: "plants & buds",
     width: 16,
     height: 16,
@@ -617,19 +588,19 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Midnight pot outline" },
-      { number: 2, hex: "#2E7D32", name: "Deep Forest Green Monstera" },
-      { number: 3, hex: "#81C784", name: "Light Green Leaf Veins" },
-      { number: 4, hex: "#D84315", name: "Terracotta Baked Earth" },
-      { number: 5, hex: "#FF8A65", name: "Clay highlights" }
+      { number: 1, hex: "#2F2E36", name: "Угольный контур вазона" },
+      { number: 2, hex: "#2E7D32", name: "Глубокая благородная зелень" },
+      { number: 3, hex: "#81C784", name: "Яркие прожилки листа" },
+      { number: 4, hex: "#D84315", name: "Вазон из обожжённой глины" },
+      { number: 5, hex: "#FF8A65", name: "Светлые блики горшка" }
     ],
     difficulty: "Expert",
     yarnReward: 120,
-    description: "A beautiful, detailed split-leaf monstera plant in a classic warm clay pot."
+    description: "Роскошные резные листья домашней монстеры в классическом кашпо терракотового оттенка."
   },
   {
     id: "cherry_blossom_branch",
-    name: "Cherry Blossom Pot 🌸",
+    name: "Горшочек Сакуры 🌸",
     category: "plants & buds",
     width: 16,
     height: 16,
@@ -652,147 +623,195 @@ export const PUZZLE_TEMPLATES: PuzzleTemplate[] = [
       "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Soft Charcoal branches" },
-      { number: 2, hex: "#5D4037", name: "Muted Wood Brown" },
-      { number: 3, hex: "#F06292", name: "Cherry Blossom Pink" },
-      { number: 4, hex: "#FF8A80", name: "Melon blush petals" },
-      { number: 5, hex: "#FFEE58", name: "Golden pollen stamen" }
+      { number: 1, hex: "#2F2E36", name: "Тёмные веточки дерева" },
+      { number: 2, hex: "#5D4037", name: "Коричневая кора бонсай" },
+      { number: 3, hex: "#F06292", name: "Лепестки цветущей сакуры" },
+      { number: 4, hex: "#FF8A80", name: "Нежные бутоны" },
+      { number: 5, hex: "#FFEE58", name: "Золотистые тычинки" }
     ],
     difficulty: "Expert",
     yarnReward: 115,
-    description: "A beautiful, detailed branch of blooming cherry blossom buds sprouting elegantly in a bonsai style pot."
+    description: "Прекрасная ветвь восточной вишни (сакуры), распустившая свои нежнейшие бутоны во время весеннего солнца."
   },
+
+  /* 🧸 TOYS - HIGHLY DETAILED & SEVERAL NEW EXCITING ADDITIONS! */
   {
     id: "toy_yarn_ball",
-    name: "Cozy Yarn Ball 🧶",
+    name: "Качественный Клубок 🧶",
     category: "toys",
-    width: 12,
-    height: 12,
+    width: 16,
+    height: 16,
     rows: [
-      "....1111....",
-      "..11222211..",
-      ".1223223221.",
-      "123223223221",
-      "122322322321",
-      "123223223221",
-      "122322322321",
-      "123223223221",
-      ".1223223221.",
-      "..11222211..",
-      "....1111.41.",
-      "........4..."
+      "................",
+      "......1111......",
+      "....11222211....",
+      "...1223223221...",
+      "..123223223221..",
+      ".12232232232221.",
+      "1232232232232221",
+      "1223223223223221",
+      "1232232232232221",
+      ".12232232232221.",
+      "..122232232221..",
+      "...1122222211.41",
+      ".....111111..4..",
+      "............4...",
+      "...........4....",
+      "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Charcoal Outline" },
-      { number: 2, hex: "#E91E63", name: "Vibrant Cherry Yarn" },
-      { number: 3, hex: "#FF6090", name: "Magenta Highlights" },
-      { number: 4, hex: "#FF8A80", name: "Stray Soft Thread" }
+      { number: 1, hex: "#2F2E36", name: "Рамка контура" },
+      { number: 2, hex: "#E91E63", name: "Малиновая классная пряжа" },
+      { number: 3, hex: "#FF6090", name: "Яркие нити подсветки" },
+      { number: 4, hex: "#FF8A80", name: "Уронившаяся свободная нитка" }
     ],
     difficulty: "Easy",
-    yarnReward: 50,
-    description: "A soft ball of high-quality woolly yarn with a stray thread perfect for cats to swat and play with."
+    yarnReward: 65,
+    description: "Мягкий клубочек отборной качественной шерсти с дразнящей ниточкой для активных кошачьих игр."
   },
   {
     id: "squeaky_mouse",
-    name: "Squeaky Mouse 🐭",
+    name: "Игрушка-Мышка 🐭",
     category: "toys",
-    width: 12,
-    height: 12,
+    width: 16,
+    height: 16,
     rows: [
-      "............",
-      "..11....11..",
-      ".1331..1331.",
-      "132231132231",
-      "122222222221",
-      "121122221121",
-      "122222222221",
-      ".1224422441.",
-      "..12222221..",
-      "...112211.55",
-      ".....11..5..",
-      "............"
+      "................",
+      "....11....11....",
+      "...1331..1331...",
+      "..132231132231..",
+      ".12222222222221.",
+      "1222222222222221",
+      "1221122222211221",
+      "1222122222212221",
+      "1255222222225521",
+      ".12222222222221.",
+      "..122211112221..",
+      "...1122222211.55",
+      ".....111111..5..",
+      "............5...",
+      "...........5....",
+      "................"
     ],
     colors: [
-      { number: 1, hex: "#2F2E36", name: "Midnight Outline" },
-      { number: 2, hex: "#BEC2CB", name: "Cozy Grey Velvet" },
-      { number: 3, hex: "#FF8A80", name: "Sweet Pink Inner Ears" },
-      { number: 4, hex: "#1E1F22", name: "Shiny Oval Beads" },
-      { number: 5, hex: "#FFB300", name: "Catnip String Tail" }
-    ],
-    difficulty: "Medium",
-    yarnReward: 65,
-    description: "An adorable plush cat toy in the shape of a tiny mouse, stuffed with pure premium catnip!"
-  },
-  {
-    id: "witch_hat_kitty",
-    name: "Witch Hat Kitty 🧙",
-    category: "magic",
-    width: 14,
-    height: 14,
-    rows: [
-      "......22......",
-      ".....2222.....",
-      "....222222....",
-      "....213312....",
-      "...21333312...",
-      "..1111111111..",
-      ".122222222221.",
-      "11111111111111",
-      ".144111111441.",
-      "14554111145541",
-      "14444444444441",
-      "14411444411441",
-      ".144444444441.",
-      "..1111111111.."
-    ],
-    colors: [
-      { number: 1, hex: "#1A1A1A", name: "Midnight Charcoal" },
-      { number: 2, hex: "#5E35B1", name: "Deep Royal Felt" },
-      { number: 3, hex: "#FFD54F", name: "Gleaming Gold Brass" },
-      { number: 4, hex: "#ECEFF1", name: "Pristine Snow Fur" },
-      { number: 5, hex: "#00E676", name: "Glow Green Magic Eyes" }
-    ],
-    difficulty: "Expert",
-    yarnReward: 100,
-    description: "An elite wizard kitten wearing a pointed purple sorcery hat with glowing emerald eyes."
-  },
-  {
-    id: "crystal_fortune",
-    name: "Fortune Crystal 🔮",
-    category: "magic",
-    width: 12,
-    height: 12,
-    rows: [
-      "....1111....",
-      "..11333311..",
-      ".1334334331.",
-      "133443344331",
-      "133333333331",
-      "134333333431",
-      ".1333333331.",
-      "..11111111..",
-      "...122221...",
-      "..12211221..",
-      ".1222222221.",
-      "..11111111.."
-    ],
-    colors: [
-      { number: 1, hex: "#2F2E36", name: "Dark Outlines" },
-      { number: 2, hex: "#8D6E63", name: "Deep Mahogany Stand" },
-      { number: 3, hex: "#E040FB", name: "Glowing Violet Mist" },
-      { number: 4, hex: "#FFFFFF", name: "Polarized Flares" }
+      { number: 1, hex: "#2F2E36", name: "Тёмный шов" },
+      { number: 2, hex: "#BEC2CB", name: "Мягкий серый флис" },
+      { number: 3, hex: "#FF8A80", name: "Розовые ушки у игрушки" },
+      { number: 4, hex: "#1E1F22", name: "Бусинки-глазки мышки" },
+      { number: 5, hex: "#FFB300", name: "Золотой верёвочный хвостик" }
     ],
     difficulty: "Medium",
     yarnReward: 75,
-    description: "A mysterious crystal fortune sphere filled with cosmic purple mist to predict cozy destinies."
+    description: "Текстильная мышка ручной работы, плотно набитая сушёной ароматной кошачьей мятой."
+  },
+  {
+    id: "toy_fish",
+    name: "Рыбка с мятой 🐟",
+    category: "toys",
+    width: 16,
+    height: 16,
+    rows: [
+      "................",
+      ".......111......",
+      ".....1122211....",
+      "....122332221...",
+      "...12333332221..",
+      "..1233443332221.",
+      "..1234455432221.",
+      ".12335555432221.",
+      ".1223455432221..",
+      "..1223443222211.",
+      "...1223322211..1",
+      "....1122211...11",
+      "......111....11.",
+      "............11..",
+      "................",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#1B2G36", name: "Швы рыбки" },
+      { number: 2, hex: "#4EC3E0", name: "Синяя спинка рыбы" },
+      { number: 3, hex: "#80DEEA", name: "Голубая мягкая ткань" },
+      { number: 4, hex: "#E0F7FA", name: "Серебряные чешуйки" },
+      { number: 5, hex: "#FF8A80", name: "Розовый румянец" }
+    ],
+    difficulty: "Medium",
+    yarnReward: 80,
+    description: "Красивая тканевая рыбка, шуршащая при сжатии, с которой коты обожают обниматься."
+  },
+  {
+    id: "toy_feather",
+    name: "Удочка-дразнилка 🪶",
+    category: "toys",
+    width: 16,
+    height: 16,
+    rows: [
+      "................",
+      ".............11.",
+      "............121.",
+      "...........121..",
+      "..........121...",
+      ".........121....",
+      "........121.....",
+      ".......121.33...",
+      "......121.3443..",
+      ".....121.3443...",
+      "....11..3443....",
+      ".......3443.....",
+      "......343.......",
+      ".....33.........",
+      "................",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#2F2E36", name: "Тонкий прутик" },
+      { number: 2, hex: "#B56F3F", name: "Бамбуковая ручка" },
+      { number: 3, hex: "#AB47BC", name: "Фиолетовые перья" },
+      { number: 4, hex: "#FF7043", name: "Оранжевый пух" }
+    ],
+    difficulty: "Easy",
+    yarnReward: 60,
+    description: "Любимое развлечение пушистиков: кокетливые пёрышки на прочном гибком прутике."
+  },
+  {
+    id: "toy_scratch",
+    name: "Кошачья когтеточка 🪵",
+    category: "toys",
+    width: 16,
+    height: 16,
+    rows: [
+      "................",
+      "......1111......",
+      ".....122221.....",
+      ".....123321.....",
+      ".....123321.....",
+      ".....123321.....",
+      ".....123321.....",
+      ".....123321.....",
+      ".....123321.....",
+      ".....122221.....",
+      "....11111111....",
+      "...1444444441...",
+      "..144555554441..",
+      "..144555554441..",
+      "...1111111111...",
+      "................"
+    ],
+    colors: [
+      { number: 1, hex: "#3E2723", name: "Основа швов" },
+      { number: 2, hex: "#D7CCC8", name: "Светлое сизалевое волокно" },
+      { number: 3, hex: "#A1887F", name: "Обмоточный прочный канат" },
+      { number: 4, hex: "#9575CD", name: "Полотно подставки" },
+      { number: 5, hex: "#B39DDB", name: "Ворсистая фиолетовая ткань" }
+    ],
+    difficulty: "Medium",
+    yarnReward: 85,
+    description: "Прочная устойчивая когтеточка из натурального экологически чистого сизаля."
   }
 ];
 
-// Returns empty coloring state grid for canvas based on puzzle size (width x height)
-// State is an array of size width * height. Stores:
-// { colorId?: number, filled: boolean, correct: boolean }
 export interface CellProgress {
-  number: number; // target color index represented in the raw grid row
+  number: number;
   colorHex: string | null;
   filled: boolean;
   correct: boolean;

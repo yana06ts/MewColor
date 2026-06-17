@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { COLOR_PALETTES, PUZZLE_TEMPLATES, createInitialProgress, PuzzleTemplate, CellProgress } from "./data/puzzles";
+import { PUZZLE_TEMPLATES, createInitialProgress, PuzzleTemplate, CellProgress } from "./data/puzzles";
 import { PixelGrid } from "./components/PixelGrid";
 import { CatRoom } from "./components/CatRoom";
+import { DecorationsTab } from "./components/DecorationsTab";
 import SOUNDS from "./utils/sound";
 import {
   Sparkles,
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 
 export default function App() {
+
   // 1. Core user states
   const [completedPuzzles, setCompletedPuzzles] = useState<string[]>([]);
   const [yarnCount, setYarnCount] = useState<number>(150); // standard initial points
@@ -35,11 +37,11 @@ export default function App() {
   const [customPuzzles, setCustomPuzzles] = useState<PuzzleTemplate[]>([]);
 
   // 2. Navigation states
-  const [activeTab, setActiveTab] = useState<"puzzles" | "room">("puzzles");
+  const [activeTab, setActiveTab] = useState<"puzzles" | "room" | "decorations">("puzzles");
   const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleTemplate | null>(null);
   const [currentProgress, setCurrentProgress] = useState<CellProgress[]>([]);
   const [selectedColorNumber, setSelectedColorNumber] = useState<number>(1);
-  const [categoryFilter, setCategoryFilter] = useState<"all" | "cats" | "cozy food" | "plants & buds" | "toys" | "magic">("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "cats" | "cozy food" | "plants & buds" | "toys">("all");
 
   // 3. Audio & UI options
   const [soundOn, setSoundOn] = useState<boolean>(true);
@@ -322,6 +324,7 @@ export default function App() {
       {/* Phone visual Mockup frame container for flawless mobile presentation */}
       <div className="w-full h-full max-w-md bg-white shadow-2xl flex flex-col relative overflow-hidden border-rose-300/40 md:h-[94vh] md:max-h-[850px] md:rounded-[36px] md:border-8">
         
+
         {/* 1. Header Area with Cozy design cues */}
         <header className="bg-rose-400 text-white px-4 py-3 shrink-0 flex flex-col shadow-xs select-none">
           <div className="flex justify-between items-center">
@@ -480,7 +483,6 @@ export default function App() {
                     { key: "cozy food", name: "🍩 Вкусняшки" },
                     { key: "plants & buds", name: "🌱 Растения" },
                     { key: "toys", name: "🧸 Игрушки" },
-                    { key: "magic", name: "🔮 Магия" },
                   ] as const).map((tab) => (
                     <button
                       key={tab.key}
@@ -619,6 +621,21 @@ export default function App() {
                 <CatRoom completedPuzzles={completedPuzzles} puzzleTemplates={allAvailablePuzzles} />
               </div>
             )}
+
+            {/* Tap Lobby 3: Decorations and design shop */}
+            {activeTab === "decorations" && (
+              <div className="flex-1 overflow-hidden">
+                <DecorationsTab
+                  yarnCount={yarnCount}
+                  updateYarn={updateYarn}
+                  completedPuzzles={completedPuzzles}
+                  puzzleTemplates={allAvailablePuzzles}
+                  onSelectPuzzle={(p) => {
+                    handleSelectPuzzle(p);
+                  }}
+                />
+              </div>
+            )}
             
           </div>
         </main>
@@ -630,6 +647,7 @@ export default function App() {
               
               {([
                 { key: "puzzles", name: "Пазлы", icon: "🧩" },
+                { key: "decorations", name: "Украшения", icon: "🛋️" },
                 { key: "room", name: "Кото-Дом", icon: "🐈" },
               ] as const).map((tab) => {
                 const isCurrent = activeTab === tab.key;
@@ -662,6 +680,8 @@ export default function App() {
             </div>
           </footer>
         )}
+
+
 
         {/* 4. MODALS AND FLOATING PANELS */}
 
@@ -896,7 +916,6 @@ export default function App() {
               </button>
 
               <div className="flex items-center gap-1.5 border-b border-rose-100 pb-3 mb-4">
-                <Settings className="w-5 h-5 text-rose-500" />
                 <h3 className="text-xs font-pixel text-rose-700 uppercase">
                   Настройки Игры
                 </h3>

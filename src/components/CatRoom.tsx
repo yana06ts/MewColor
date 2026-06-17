@@ -11,7 +11,9 @@ interface CatRoomProps {
 
 interface PlacedCat {
   id: string;
-  puzzleId: string;
+  type?: "cat" | "toy" | "shop"; // type indicator
+  puzzleId?: string; // set for both completed cats and toys
+  shopId?: string; // set for purchased direct buy item IDs
   name: string;
   x: number; // percentage coordinate 10-90
   y: number; // percentage coordinate 35-75 (floor level)
@@ -36,12 +38,15 @@ const CAT_MEOWS_TEXT = [
 export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
   const roomRef = useRef<HTMLDivElement>(null);
   
-  // Try to load placed cats from local storage, or spawn first completed cat by default
+  // Try to load placed objects from local storage, or spawn first completed cat by default
   const [placedCats, setPlacedCats] = useState<PlacedCat[]>([]);
   const [isDay, setIsDay] = useState<boolean>(true);
   const [fireplaceActive, setFireplaceActive] = useState<boolean>(true);
-  const [rugTheme, setRugTheme] = useState<"pink" | "blue" | "boho">("pink");
-  const [wallpaper, setWallpaper] = useState<"stripes" | "stars" | "green">("stripes");
+  
+  // Custom design states synced with Decorations / Shop Equips
+  const [rugTheme, setRugTheme] = useState<string>("pink");
+  const [wallpaper, setWallpaper] = useState<string>("stripes");
+  
   const [activeSpeech, setActiveSpeech] = useState<{ [id: string]: string }>({});
   const [activeHeart, setActiveHeart] = useState<{ [id: string]: boolean }>({});
 
@@ -50,12 +55,26 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     placedCatsRef.current = placedCats;
   }, [placedCats]);
 
+  // Filters cats completed by user
   const unlockedCats = puzzleTemplates.filter(
     (p) => p.category === "cats" && completedPuzzles.includes(p.id)
   );
 
-  // Load state on mount
+  // Sync / Load Room Design settings on mount and completedPuzzles changes
   useEffect(() => {
+    // 1. Wallpaper themes Loader
+    const savedWallpaper = localStorage.getItem("meowcolor_equipped_wallpaper");
+    if (savedWallpaper) {
+      setWallpaper(savedWallpaper);
+    }
+
+    // 2. Rug designs Loader
+    const savedRug = localStorage.getItem("meowcolor_equipped_rug");
+    if (savedRug) {
+      setRugTheme(savedRug);
+    }
+
+    // 3. Placed objects Loader
     const saved = localStorage.getItem("meowcolor_placed_cats");
     if (saved) {
       try {
@@ -67,8 +86,9 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
       // Auto place first unlocked cat in the coordinates
       const defaultCat: PlacedCat = {
         id: `placed_${unlockedCats[0].id}`,
+        type: "cat",
         puzzleId: unlockedCats[0].id,
-        name: unlockedCats[0].name.replace("🐾", ""),
+        name: unlockedCats[0].name.replace(/[🐾🐈‍⬛📦]/g, "").trim(),
         x: 45,
         y: 65,
         isSleeping: false,
@@ -78,7 +98,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     }
   }, [completedPuzzles]);
 
-  // Save changes
+  // Save changes helper
   const savePlacedCats = (cats: PlacedCat[]) => {
     setPlacedCats(cats);
     localStorage.setItem("meowcolor_placed_cats", JSON.stringify(cats));
@@ -98,6 +118,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
     const newCat: PlacedCat = {
       id: `placed_${puzzleId}_${Date.now()}`,
+      type: "cat",
       puzzleId,
       name: template.name.replace(/[🐾🐈‍⬛📦]/g, "").trim(),
       x: 20 + Math.random() * 50, // position around rug center
@@ -120,14 +141,13 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
   // Trigger Meow speech & heart bubble on tap!
   const handleTapCat = (cat: PlacedCat) => {
-    // 1. Play synthesized feline meow!
     SOUNDS.playMeow();
 
-    // 2. Select random cute phrase
+    // Select random cute phrase
     const randomSpeech = CAT_MEOWS_TEXT[Math.floor(Math.random() * CAT_MEOWS_TEXT.length)];
     setActiveSpeech((prev) => ({ ...prev, [cat.id]: randomSpeech }));
 
-    // 3. Spawn floating heart
+    // Spawn floating heart
     setActiveHeart((prev) => ({ ...prev, [cat.id]: true }));
 
     // Auto clear bubbles after 2.5s
@@ -157,7 +177,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     savePlacedCats(updated);
   };
 
-  // Start dragging a cat using native PointerEvents
+  // Start dragging an object using native PointerEvents
   const handlePointerDown = (e: React.PointerEvent, catId: string) => {
     e.stopPropagation();
     const container = roomRef.current;
@@ -172,7 +192,6 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     target.setPointerCapture(e.pointerId);
     
     const handlePointerMove = (moveEvent: PointerEvent) => {
-      // Small threshold (4px) to distinguish tap from drag
       if (Math.abs(moveEvent.clientX - startX) > 4 || Math.abs(moveEvent.clientY - startY) > 4) {
         hasMoved = true;
       }
@@ -206,7 +225,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
         
         // If dragged down near or over the shelf (y >= 83 or below stage lower boundary)
         if (upY >= 83 || upEvent.clientY >= upRect.bottom - 15) {
-          // Remove the cat from the room!
+          // Remove from the room!
           setPlacedCats((prevCats) => {
             const updated = prevCats.filter((c) => c.id !== catId);
             localStorage.setItem("meowcolor_placed_cats", JSON.stringify(updated));
@@ -245,6 +264,22 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     SOUNDS.playPop(1.1);
   };
 
+  // Render direct purchased shop-buy assets
+  const getShopItemGraphic = (shopId: string) => {
+    switch (shopId) {
+      case "cushion":
+        return <div className="text-4xl filter drop-shadow hover:scale-105 duration-200 select-none">🛋️</div>;
+      case "luxury_tree":
+        return <div className="text-5xl filter drop-shadow-md hover:scale-105 duration-200 select-none">🌳</div>;
+      case "golden_fish":
+        return <div className="text-3xl filter drop-shadow animate-bounce select-none">🥣</div>;
+      case "tunnel":
+        return <div className="text-4xl filter drop-shadow hover:scale-105 duration-200 select-none">🌀</div>;
+      default:
+        return <div className="text-3xl filter drop-shadow select-none">🎁</div>;
+    }
+  };
+
   // Render cat silhouette as pixel SVG
   const getCatPixelIcon = (puzzleId: string) => {
     const template = puzzleTemplates.find((p) => p.id === puzzleId);
@@ -278,6 +313,23 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     );
   };
 
+  // Background style helper based on equipped wallpaper
+  const getWallpaperBackgroundStyle = () => {
+    if (!isDay) {
+      return "bg-[linear-gradient(180deg,#090A1A_0%,#1B1D34_100%)]";
+    }
+    
+    switch (wallpaper) {
+      case "stars":
+        return "bg-[linear-gradient(180deg,#1e1b4b_0%,#312e81_100%)]";
+      case "sakura":
+        return "bg-[linear-gradient(180deg,#fdf2f8_0%,#fce7f3_100%)]";
+      case "stripes":
+      default:
+        return "bg-[linear-gradient(180deg,#FFF3E0_0%,#FFE4C4_100%)]";
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#fceee3]">
       
@@ -298,58 +350,58 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
               setIsDay(!isDay);
               SOUNDS.playPop(1.5);
             }}
-            className={`p-1.5 rounded-full border border-rose-100 shadow-xs transition-colors cursor-pointer ${
-              isDay ? "bg-amber-100 text-amber-600" : "bg-indigo-900 text-indigo-200"
+            className={`p-1.5 rounded-lg border text-xs font-pixel flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+              isDay
+                ? "bg-amber-100 border-amber-200 text-amber-800"
+                : "bg-indigo-950 border-indigo-900 text-indigo-300"
             }`}
-            title="Сменить день/ночь"
+            title="Переключить время суток"
           >
-            {isDay ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {isDay ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            <span className="text-[9px] uppercase font-bold scale-85">
+              {isDay ? "День ☀️" : "Ночь 🌙"}
+            </span>
           </button>
 
           <button
-            id="toggle-fire-btn"
+            id="cozy-fireplace-btn"
             onClick={() => {
               setFireplaceActive(!fireplaceActive);
-              SOUNDS.playPop(1.3);
+              SOUNDS.playPop(1.2);
             }}
-            className={`p-1.5 rounded-full border border-rose-100 shadow-xs transition-colors cursor-pointer ${
-              fireplaceActive ? "bg-orange-100 text-orange-600" : "bg-neutral-100 text-neutral-400"
+            className={`p-1.5 rounded-lg border text-xs font-pixel flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+              fireplaceActive
+                ? "bg-red-100 border-red-200 text-red-600"
+                : "bg-slate-100 border-slate-200 text-slate-500"
             }`}
             title="Камин"
           >
-            <Flame className="w-4 h-4" />
-          </button>
-
-          <button
-            id="toggle-rug-btn"
-            onClick={() => {
-              const rugs: Array<"pink" | "blue" | "boho"> = ["pink", "blue", "boho"];
-              const next = rugs[(rugs.indexOf(rugTheme) + 1) % rugs.length];
-              setRugTheme(next);
-              SOUNDS.playPop(1.2);
-            }}
-            className="p-1.5 rounded-full border border-rose-100 bg-white text-rose-500 shadow-xs hover:bg-rose-50 cursor-pointer"
-            title="Поменять коврик"
-          >
-            <Palette className="w-4 h-4" />
+            <Flame className="w-3.5 h-3.5" />
+            <span className="text-[9px] uppercase font-bold scale-85">камин</span>
           </button>
         </div>
       </div>
 
-      {/* Main living space container */}
+      {/* Main Interactive Stage drawing view */}
       <div
         ref={roomRef}
         id="cozy-cat-room-stage"
-        className={`flex-1 relative overflow-hidden transition-all duration-750 ease-in-out border-b-8 border-rose-950/20 ${
-          isDay
-            ? wallpaper === "stripes"
-              ? "bg-[linear-gradient(180deg,#FFF3E0_0%,#FFE4C4_100%)]"
-              : "bg-[#FFF9C4]"
-            : "bg-[linear-gradient(180deg,#1A1B35_0%,#2C2F4D_100%)]"
-        }`}
+        className={`flex-1 relative overflow-hidden transition-all duration-750 ease-in-out border-b-8 border-rose-950/20 ${getWallpaperBackgroundStyle()}`}
       >
-        {/* Wallpaper stripes overlay */}
-        <div className="absolute inset-0 bg-stripesPattern opacity-5 pointer-events-none" />
+        {/* Striped overlay wallpaper (only if stripes is selected and it is day time) */}
+        {isDay && wallpaper === "stripes" && (
+          <div className="absolute inset-0 bg-stripesPattern opacity-5 pointer-events-none" />
+        )}
+
+        {/* Baby Pink Sakura petals drifting decoration if sakura is active */}
+        {isDay && wallpaper === "sakura" && (
+          <div className="absolute top-2 inset-x-0 h-40 flex items-center justify-around pointer-events-none opacity-40">
+            <div className="text-lg animate-bounce duration-1000">🌸</div>
+            <div className="text-xl animate-bounce duration-750 mt-12">🌸</div>
+            <div className="text-sm animate-bounce duration-1200 mt-6">-🌸</div>
+            <div className="text-lg animate-bounce duration-1500">🌸</div>
+          </div>
+        )}
 
         {/* Dynamic Night Window Star field */}
         {!isDay && (
@@ -369,14 +421,6 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
             <div className="absolute top-2 right-4 w-4 h-4 bg-yellow-100/80 rounded-full" />
           </div>
         )}
-
-        {/* Wall Frame Painting with completed stats */}
-        <div className="absolute top-8 right-10 p-1 bg-amber-950 rounded-lg shadow-md border-2 border-amber-900 overflow-hidden select-none">
-          <div className="bg-slate-100 text-slate-800 text-[8px] font-pixel p-1.5 leading-tight rounded-sm max-w-[120px]">
-            <span className="text-rose-500 font-bold block mb-1">ГРУППА CATS</span>
-            Готово котиков: <span className="font-extrabold text-amber-900">{unlockedCats.length}</span>
-          </div>
-        </div>
 
         {/* Cozy Brick Fireplace */}
         <div className="absolute bottom-[28%] left-4 flex flex-col items-center">
@@ -403,15 +447,17 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
                 ? "bg-rose-200 border-rose-300 shadow-rose-200/50"
                 : rugTheme === "blue"
                 ? "bg-sky-200 border-sky-300 shadow-sky-200/50"
-                : "bg-[#E6C280] border-[#D4AE6A]"
+                : rugTheme === "green"
+                ? "bg-emerald-200 border-emerald-300 shadow-emerald-200/50"
+                : "bg-amber-200 border-amber-300 shadow-amber-200/50"
             }`}
           >
             {/* Decorative fringe pattern / lines on the rug */}
             <div className="w-[88%] h-[78%] rounded-full border-2 border-dashed border-white/60" />
-            {unlockedCats.length === 0 && (
+            {placedCats.length === 0 && (
               <div className="absolute text-center px-4">
                 <span className="text-[10px] text-rose-800/80 font-pixel font-bold drop-shadow-xs max-w-[190px] block leading-tight">
-                  Раскрась кота, чтобы позвать его на этот коврик! 🐾
+                  Перетащи котика или игрушку из меню в комнату! 🐾
                 </span>
               </div>
             )}
@@ -432,16 +478,16 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
         {/* Empty placeholder warning */}
         {placedCats.length === 0 && unlockedCats.length > 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-6">
-            <div className="bg-white/90 rounded-2xl p-4 shadow-lg border border-rose-100 text-center max-w-[240px]">
+            <div className="bg-white/95 rounded-2xl p-4 shadow-lg border border-rose-100 text-center max-w-[240px]">
               <HelpCircle className="w-6 h-6 text-rose-400 mx-auto mb-1 animate-bounce" />
               <p className="text-[10px] font-pixel text-slate-600 leading-relaxed">
-                Твоя комнатка пуста! Нажми на любого котика внизу, чтобы запустить его играть!
+                Твоя комнатка пуста! Нажми на котика внизу или выбери украшения во вкладке «Украшения», чтобы оживить комнату!
               </p>
             </div>
           </div>
         )}
 
-        {/* PLACED CATS GRID LAYOUTS & INTERACTIONS */}
+        {/* SOLID PLACED OBJECTS DRAGGING LAYER */}
         {placedCats.map((cat) => {
           const speech = activeSpeech[cat.id];
           const hasHeart = activeHeart[cat.id];
@@ -496,48 +542,52 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "left")}
-                  className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
+                  className="px-1.5 py-0.5 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   ←
                 </button>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "right")}
-                  className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
+                  className="px-1.5 py-0.5 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   →
                 </button>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "up")}
-                  className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
+                  className="px-1.5 py-0.5 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   ↑
                 </button>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleReposition(cat.id, "down")}
-                  className="px-1 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
+                  className="px-1.5 py-0.5 text-[8px] font-pixel text-white hover:bg-slate-700 rounded-sm cursor-pointer"
                 >
                   ↓
                 </button>
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => handleRemoveCat(cat.id)}
-                  className="px-1 text-[8px] font-pixel text-red-400 hover:bg-red-500/20 rounded-sm cursor-pointer ml-1"
+                  className="px-1.5 py-0.5 text-[8px] font-pixel text-red-400 hover:bg-red-500/20 rounded-sm cursor-pointer ml-1"
                   title="Убрать"
                 >
                   ✖
                 </button>
               </div>
 
-              {/* The actual Pixel Cat graphics, rendered as absolute gorgeous interactive component */}
+              {/* Pixel Art / Shop Item Graphic */}
               <div
                 className={`relative transition-transform duration-200 transform ${
                   cat.flipped ? "scale-x-[-1]" : ""
                 } ${cat.isSleeping ? "opacity-90 saturate-75 shadow-inner" : "hover:scale-115"}`}
               >
-                {getCatPixelIcon(cat.puzzleId)}
+                {cat.shopId ? (
+                  getShopItemGraphic(cat.shopId)
+                ) : (
+                  getCatPixelIcon(cat.puzzleId || "")
+                )}
 
                 {/* Zzz floating letters if cat is Sleeping */}
                 {cat.isSleeping && (
