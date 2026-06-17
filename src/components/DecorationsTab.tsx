@@ -366,15 +366,6 @@ export function DecorationsTab({
         {/* SECTION B: GO TO DIRECT SHOP */}
         {activeSection === "shop" && (
           <div className="space-y-3">
-            <div className="bg-amber-50 rounded-2xl p-3 border border-amber-200/50 leading-tight">
-              <span className="text-[10px] font-pixel text-amber-800 font-bold block mb-1">
-                🛍 🌟 УЮТНАЯ МЕБЕЛЬ ДЛЯ ДОМА:
-              </span>
-              <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
-                Эти классные аксессуары не требуют раскрашивания! Покупай их за собранные мотки шерсти, и они сразу же встанут на свои постоянные места в комнате котиков.
-              </p>
-            </div>
-
             <div className="grid grid-cols-1 gap-3">
               {SHOP_ITEMS.map((item) => {
                 const isBought = purchasedItems.includes(item.id);

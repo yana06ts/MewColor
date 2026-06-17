@@ -545,7 +545,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
         {/* STATIC BOUGHT FURNITURE LAYER (No animations, fixed positions, non-draggable) */}
         {[
-          { id: "cushion", left: "50%", top: "62%", graphic: <div className="text-8xl md:text-[6.5rem] select-none drop-shadow-xl transform hover:scale-105 transition-transform duration-300">🛋️</div> },
+          { id: "cushion", left: "50%", top: "48%", graphic: <div className="text-8xl md:text-[8.5rem] select-none drop-shadow-2xl transform hover:scale-105 transition-transform duration-300">🛋️</div> },
           { id: "golden_fish", left: "10%", top: "84%", graphic: <div className="text-3xl select-none drop-shadow-sm">🥣</div> },
           { id: "tunnel", left: "26%", top: "82%", graphic: <div className="text-4xl md:text-5xl select-none drop-shadow-md">📦</div> },
           { id: "luxury_tower", left: "84%", top: "44%", graphic: (
@@ -592,8 +592,8 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
           { id: "toy_scratch", left: "76%", top: "67%" },
         ].map((toy) => {
           if (!completedPuzzles.includes(toy.id)) return null;
-          // Only show if present/active in placedCats list
-          const isPlaced = placedCats.some((placed) => placed.puzzleId === toy.id);
+          // Only show if present/active in placedCats list and represents a toy
+          const isPlaced = placedCats.some((placed) => placed.puzzleId === toy.id && (placed.type === "toy" || puzzleTemplates.find(p => p.id === placed.puzzleId)?.category === "toys"));
           if (!isPlaced) return null;
 
           return (
@@ -631,7 +631,11 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
         )}
 
         {/* SOLID PLACED OBJECTS DRAGGING LAYER */}
-        {placedCats.filter((cat) => cat.type === "cat" || !cat.type).map((cat) => {
+        {placedCats.filter((cat) => {
+          const template = cat.puzzleId ? puzzleTemplates.find(p => p.id === cat.puzzleId) : null;
+          const isCat = !cat.shopId && (!template || template.category === "cats");
+          return isCat;
+        }).map((cat) => {
           const speech = activeSpeech[cat.id];
           const hasHeart = activeHeart[cat.id];
 
