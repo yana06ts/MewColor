@@ -181,6 +181,33 @@ export default function App() {
       if (isFirstTime) {
         setCompletedPuzzles(newCompleted);
         localStorage.setItem("meowcolor_completed", JSON.stringify(newCompleted));
+
+        // Auto-place newly completed cat or toy in the room!
+        const savedPlaced = localStorage.getItem("meowcolor_placed_cats");
+        let currentPlaced = [];
+        if (savedPlaced) {
+          try {
+            currentPlaced = JSON.parse(savedPlaced);
+          } catch (e) {}
+        }
+        const isAlreadyPlaced = currentPlaced.some(
+          (item: any) => item.puzzleId === puzzleId
+        );
+        if (!isAlreadyPlaced) {
+          const type = selectedPuzzle!.category === "cats" ? "cat" : "toy";
+          const newItem = {
+            id: `placed_${type}_${puzzleId}_${Date.now()}`,
+            type,
+            puzzleId,
+            name: selectedPuzzle!.name.replace(/[🐾🐈‍⬛📦🧸🐚🛋️🌳🥣🌀🏰🌸🪵🌌]/g, "").trim(),
+            x: 25 + Math.random() * 50,
+            y: 55 + Math.random() * 15,
+            isSleeping: false,
+            flipped: Math.random() > 0.5,
+          };
+          currentPlaced.push(newItem);
+          localStorage.setItem("meowcolor_placed_cats", JSON.stringify(currentPlaced));
+        }
       }
 
       // Add yarn rewards
@@ -295,7 +322,7 @@ export default function App() {
     setCategoryFilter("custom");
     setActiveTab("puzzles");
     
-    alert(`Твой пиксель-арт «${sandboxName}» опубликован! Ты получил +30 моточков пряжи! 🎉 Собирай и крась его теперь во вкладке «Пазлы».`);
+    alert(`Твой пиксель-арт «${sandboxName}» опубликован! Ты получил +30 моточков пряжи! 🎉 Собирай и крась его теперь во вкладке «Раскраски».`);
   };
 
   const handleSandboxCellClick = (idx: number) => {
@@ -646,7 +673,7 @@ export default function App() {
             <div className="flex justify-around items-center">
               
               {([
-                { key: "puzzles", name: "Пазлы", icon: "🧩" },
+                { key: "puzzles", name: "Раскраски", icon: "🎨" },
                 { key: "decorations", name: "Украшения", icon: "🛋️" },
                 { key: "room", name: "Кото-Дом", icon: "🐈" },
               ] as const).map((tab) => {
@@ -697,12 +724,9 @@ export default function App() {
                 <CheckCircle className="w-9 h-9 text-amber-500" />
               </div>
 
-              <h2 className="text-sm font-pixel text-amber-900 uppercase mb-2">
+              <h2 className="text-sm font-pixel text-amber-900 uppercase mb-4">
                 Картина Завершена! 🎉
               </h2>
-              <p className="text-xs text-slate-600 leading-relaxed mb-4 font-semibold">
-                Твой чудесный пиксельный котик или вкусняшка сверкает яркими красками!
-              </p>
 
               {/* Finished drawing preview container */}
               {selectedPuzzle && (
@@ -855,7 +879,7 @@ export default function App() {
                 <li className="flex gap-2">
                   <span className="text-base">1️⃣</span>
                   <p className="leading-tight">
-                    Перейди во вкладку <strong>«Пазлы»</strong> и выбери любого милого пиксельного персонажа.
+                    Перейди во вкладку <strong>«Раскраски»</strong> и выбери любого милого пиксельного персонажа.
                   </p>
                 </li>
                 <li className="flex gap-2">

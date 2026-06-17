@@ -32,11 +32,10 @@ export function DecorationsTab({
 }: DecorationsTabProps) {
   // 1. Direct buy items config
   const SHOP_ITEMS = [
-    { id: "cushion", name: "Мягкая подушечка 🛋️", price: 30, description: "Невероятно мягкая пуховая лежанка для ленивого сна" },
-    { id: "luxury_tree", name: "Игровой комплекс 🌳", price: 65, description: "Многоярусное элитное дерево для лазания и прыжков кувырком" },
+    { id: "cushion", name: "Королевский диван 🛋️", price: 30, description: "Просторный мягкий диван для дневного сна всей кошачьей банды" },
     { id: "golden_fish", name: "Миска с карасями 🥣", price: 25, description: "Полная миска свежих карасей для сытого кошачьего мурчания" },
-    { id: "tunnel", name: "Шуршащая труба 🌀", price: 40, description: "Специальный шуршащий тоннель с забавными лазейками" },
-    { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками и когтеточками" },
+    { id: "tunnel", name: "Коробка мечты 📦", price: 40, description: "Простая картонная коробка — идеальный замок для любого котика" },
+    { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками" },
   ];
 
   // 2. Rug designs config
@@ -148,7 +147,7 @@ export function DecorationsTab({
   const handleBuyShopItem = (id: string, name: string, price: number) => {
     if (yarnCount < price) {
       SOUNDS.playError();
-      alert("Недостаточно мотков пряжи! Раскрашивай картинки во вкладке «Пазлы», чтобы заработать больше пряжи! 🧶");
+      alert("Недостаточно мотков пряжи! Раскрашивай картинки во вкладке «Раскраски», чтобы заработать больше пряжи! 🧶");
       return;
     }
     const nextYarn = yarnCount - price;
@@ -157,6 +156,21 @@ export function DecorationsTab({
     const nextPurchased = [...purchasedItems, id];
     setPurchasedItems(nextPurchased);
     localStorage.setItem("meowcolor_purchased_items", JSON.stringify(nextPurchased));
+
+    // Also auto-place on buy so it shows up in Room immediately!
+    const newItem: PlacedItem = {
+      id: `placed_shop_${id}_${Date.now()}`,
+      type: "shop",
+      shopId: id,
+      name: name.replace(/[🧸🐚🛋️🌳🥣🌀🐱🐾🌸🪵🌌📦🏰]/g, "").trim(),
+      x: 25 + Math.random() * 50,
+      y: 45 + Math.random() * 20,
+      isSleeping: false,
+      flipped: Math.random() > 0.5,
+    };
+    const updated = [...placedItems, newItem];
+    savePlacedItemsToRoom(updated);
+
     SOUNDS.playSuccessColor();
   };
 
@@ -226,9 +240,6 @@ export function DecorationsTab({
             Уютные Украшения 🛋️
           </h2>
         </div>
-        <span className="text-[10px] bg-amber-100 text-slate-800 border border-amber-300 px-2 py-0.5 rounded-full font-pixel font-bold">
-          В наличии: {yarnCount} 🧶
-        </span>
       </div>
 
       {/* 2. Cozy Section Pills */}
@@ -283,6 +294,7 @@ export function DecorationsTab({
             <div className="grid grid-cols-1 gap-3">
               {toyPuzzles.map((toy) => {
                 const isDone = completedPuzzles.includes(toy.id);
+                const isPlaced = placedItems.some((item) => item.puzzleId === toy.id);
 
                 return (
                   <div
@@ -328,9 +340,16 @@ export function DecorationsTab({
 
                       <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
                         {isDone ? (
-                          <span className="px-2.5 py-1 text-[9px] font-pixel font-bold text-emerald-600 bg-emerald-50 rounded-lg border border-emerald-100">
-                            🏠 красуется дома
-                          </span>
+                          <button
+                            onClick={() => handleTogglePlaceItem("toy", toy.id, toy.name)}
+                            className={`px-3 py-1.5 rounded-xl text-[9px] font-pixel font-bold border transition-all cursor-pointer ${
+                              isPlaced
+                                ? "bg-red-50 text-red-500 border-red-200/50 hover:bg-red-100/40"
+                                : "bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600"
+                            }`}
+                          >
+                            {isPlaced ? "✖ Убрать из дома" : "🏠 Поставить дома"}
+                          </button>
                         ) : (
                           <button
                             onClick={() => onSelectPuzzle(toy)}
@@ -342,7 +361,7 @@ export function DecorationsTab({
                         )}
                         
                         <span className="text-[9px] font-pixel text-slate-400">
-                          {isDone ? "✓ Раскрашено" : `${toy.width}x${toy.height}`}
+                          {isDone ? (isPlaced ? "✓ Дома" : "💤 Спрятано") : `${toy.width}x${toy.height}`}
                         </span>
                       </div>
                     </div>
@@ -368,6 +387,7 @@ export function DecorationsTab({
             <div className="grid grid-cols-1 gap-3">
               {SHOP_ITEMS.map((item) => {
                 const isBought = purchasedItems.includes(item.id);
+                const isPlaced = placedItems.some((placed) => placed.shopId === item.id);
 
                 return (
                   <div
@@ -376,7 +396,7 @@ export function DecorationsTab({
                   >
                     {/* Visual icon badge placeholder */}
                     <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center text-4xl shadow-inner shrink-0 border border-rose-100">
-                      {item.id === "cushion" ? "🛋️" : item.id === "luxury_tree" ? "🌳" : item.id === "golden_fish" ? "🥣" : item.id === "tunnel" ? "🌀" : "🏰"}
+                      {item.id === "cushion" ? "🛋️" : item.id === "golden_fish" ? "🥣" : item.id === "tunnel" ? "📦" : "🏰"}
                     </div>
 
                     {/* Metadata controls details */}
@@ -397,9 +417,16 @@ export function DecorationsTab({
 
                       <div className="flex gap-2 mt-2 pt-2 border-t border-slate-50">
                         {isBought ? (
-                          <span className="text-center py-1.5 rounded-xl text-[9px] font-pixel font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 w-full">
-                            🏠 куплено и добавлено
-                          </span>
+                          <button
+                            onClick={() => handleTogglePlaceItem("shop", item.id, item.name)}
+                            className={`flex-1 text-center py-1.5 rounded-xl text-[9px] font-pixel font-bold border transition-all cursor-pointer ${
+                              isPlaced
+                                ? "bg-red-50 text-red-500 border-red-200/50 hover:bg-red-100/40"
+                                : "bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600"
+                            }`}
+                          >
+                            {isPlaced ? "✖ Убрать из дома" : "🏠 Поставить дома"}
+                          </button>
                         ) : (
                           <button
                             onClick={() => handleBuyShopItem(item.id, item.name, item.price)}

@@ -545,34 +545,33 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
         {/* STATIC BOUGHT FURNITURE LAYER (No animations, fixed positions, non-draggable) */}
         {[
-          { id: "cushion", left: "18%", top: "75%", graphic: <div className="text-4xl select-none">🛋️</div> },
-          { id: "luxury_tree", left: "14%", top: "45%", graphic: <div className="text-5xl select-none">🌳</div> },
-          { id: "golden_fish", left: "52%", top: "82%", graphic: <div className="text-3xl select-none">🥣</div> },
-          { id: "tunnel", left: "34%", top: "80%", graphic: <div className="text-4xl select-none">🌀</div> },
-          { id: "luxury_tower", left: "85%", top: "42%", graphic: (
-            <div className="flex flex-col items-center select-none" style={{ height: "130px" }}>
+          { id: "cushion", left: "50%", top: "72%", graphic: <div className="text-6xl md:text-7xl select-none drop-shadow-lg transform hover:scale-105 transition-transform duration-300">🛋️</div> },
+          { id: "golden_fish", left: "14%", top: "84%", graphic: <div className="text-3xl select-none drop-shadow-sm">🥣</div> },
+          { id: "tunnel", left: "32%", top: "82%", graphic: <div className="text-4xl md:text-5xl select-none drop-shadow-md">📦</div> },
+          { id: "luxury_tower", left: "84%", top: "44%", graphic: (
+            <div className="flex flex-col items-center select-none" style={{ height: "120px" }}>
               {/* Tier top */}
-              <div className="bg-amber-100 border border-amber-300 w-12 h-6 rounded-full flex items-center justify-center -mb-1 shadow-sm">
-                <span className="text-xs">🐱</span>
-              </div>
+              <div className="bg-amber-100 border border-amber-300 w-12 h-4 rounded-full shadow-sm -mb-0.5" />
               {/* Pillar */}
-              <div className="bg-amber-800 w-2 h-6" />
+              <div className="bg-amber-800/80 w-2 h-6" />
               {/* Tier middle */}
-              <div className="bg-amber-100 border border-amber-300 w-14 h-6 rounded-full flex items-center justify-center -mb-1 shadow-sm">
-                <span className="text-xs">🧺</span>
-              </div>
+              <div className="bg-amber-100 border border-amber-300 w-14 h-4 rounded-full shadow-sm -mb-0.5" />
               {/* Pillar */}
-              <div className="bg-amber-800 w-2 h-6" />
+              <div className="bg-amber-800/80 w-2 h-6" />
               {/* Bottom Tier (box cave) */}
               <div className="bg-amber-950 border border-amber-800 w-16 h-12 rounded-lg flex items-center justify-center relative shadow-md">
-                <div className="w-8 h-8 rounded-full bg-black/80 flex items-center justify-center">
-                  <span className="text-[10px] text-amber-300 font-pixel font-bold">Zz..</span>
+                <div className="w-8 h-8 rounded-full bg-black/85 flex items-center justify-center">
+                  {/* Empty cave opening */}
                 </div>
               </div>
             </div>
           ) },
         ].map((item) => {
           if (!purchasedItems.includes(item.id)) return null;
+          // Only show if present/active in placedCats list
+          const isPlaced = placedCats.some((placed) => placed.shopId === item.id);
+          if (!isPlaced) return null;
+
           return (
             <div
               key={item.id}
@@ -593,6 +592,10 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
           { id: "toy_scratch", left: "76%", top: "67%" },
         ].map((toy) => {
           if (!completedPuzzles.includes(toy.id)) return null;
+          // Only show if present/active in placedCats list
+          const isPlaced = placedCats.some((placed) => placed.puzzleId === toy.id);
+          if (!isPlaced) return null;
+
           return (
             <div
               key={toy.id}

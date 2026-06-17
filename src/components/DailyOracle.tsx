@@ -200,7 +200,7 @@ export function DailyOracle({ puzzleTemplates, onSelectPuzzle }: DailyOracleProp
                   className="bg-white rounded-xl p-3 border border-indigo-100/60 flex flex-col items-center text-center shadow-xs cursor-pointer hover:bg-slate-50 active:scale-97 transition-all"
                 >
                   <Gift className="w-6 h-6 text-amber-500 mb-1.5 animate-bounce" />
-                  <span className="text-[9px] font-pixel text-indigo-500 uppercase scale-90">Лакки-Пазл:</span>
+                  <span className="text-[9px] font-pixel text-indigo-500 uppercase scale-90">Лакки-Рисунок:</span>
                   <span className="text-[10px] text-slate-900 font-extrabold mt-0.5 truncate max-w-[120px] block hover:underline">
                     {luckyPuzzle.name}
                   </span>
