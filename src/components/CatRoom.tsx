@@ -545,7 +545,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
         {/* STATIC BOUGHT FURNITURE LAYER (No animations, fixed positions, non-draggable) */}
         {[
-          { id: "cushion", left: "50%", top: "72%", graphic: <div className="text-6xl md:text-7xl select-none drop-shadow-lg transform hover:scale-105 transition-transform duration-300">🛋️</div> },
+          { id: "cushion", left: "50%", top: "62%", graphic: <div className="text-8xl md:text-[6.5rem] select-none drop-shadow-xl transform hover:scale-105 transition-transform duration-300">🛋️</div> },
           { id: "golden_fish", left: "10%", top: "84%", graphic: <div className="text-3xl select-none drop-shadow-sm">🥣</div> },
           { id: "tunnel", left: "26%", top: "82%", graphic: <div className="text-4xl md:text-5xl select-none drop-shadow-md">📦</div> },
           { id: "luxury_tower", left: "84%", top: "44%", graphic: (

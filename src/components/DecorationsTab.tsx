@@ -282,15 +282,6 @@ export function DecorationsTab({
         {/* SECTION A: TOYS CATALOGUE */}
         {activeSection === "toys" && (
           <div className="space-y-3">
-            <div className="bg-amber-50 rounded-2xl p-3 border border-amber-200/50 leading-tight">
-              <span className="text-[10px] font-pixel text-amber-800 font-bold block mb-1">
-                🎨 ИГРУШКИ ПО НОМЕРАМ:
-              </span>
-              <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
-                Раскрась новые игрушки, чтобы они открылись! Готовые игрушки сразу автоматически ложатся на свои постоянные места в комнате котиков.
-              </p>
-            </div>
-
             <div className="grid grid-cols-1 gap-3">
               {toyPuzzles.map((toy) => {
                 const isDone = completedPuzzles.includes(toy.id);
