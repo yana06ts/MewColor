@@ -36,6 +36,7 @@ export function DecorationsTab({
     { id: "luxury_tree", name: "Игровой комплекс 🌳", price: 65, description: "Многоярусное элитное дерево для лазания и прыжков кувырком" },
     { id: "golden_fish", name: "Миска с карасями 🥣", price: 25, description: "Полная миска свежих карасей для сытого кошачьего мурчания" },
     { id: "tunnel", name: "Шуршащая труба 🌀", price: 40, description: "Специальный шуршащий тоннель с забавными лазейками" },
+    { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками и когтеточками" },
   ];
 
   // 2. Rug designs config
@@ -275,14 +276,13 @@ export function DecorationsTab({
                 🎨 ИГРУШКИ ПО НОМЕРАМ:
               </span>
               <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
-                Раскрась новые игрушки, чтобы они открылись! После этого ты сможешь разместить их в спальню котиков и перетягивать пальцем.
+                Раскрась новые игрушки, чтобы они открылись! Готовые игрушки сразу автоматически ложатся на свои постоянные места в комнате котиков.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
               {toyPuzzles.map((toy) => {
                 const isDone = completedPuzzles.includes(toy.id);
-                const isPlaced = placedItems.some((item) => item.puzzleId === toy.id);
 
                 return (
                   <div
@@ -328,23 +328,16 @@ export function DecorationsTab({
 
                       <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
                         {isDone ? (
-                          <button
-                            onClick={() => handleTogglePlaceItem("toy", toy.id, toy.name)}
-                            className={`px-3 py-1.5 rounded-xl text-[9px] font-pixel font-bold border transition-all cursor-pointer ${
-                              isPlaced
-                                ? "bg-red-50 text-red-500 border-red-200/50"
-                                : "bg-emerald-500 text-white border-emerald-600"
-                            }`}
-                          >
-                            {isPlaced ? "✖ Убрать из дома" : "🏠 Добавить в дом"}
-                          </button>
+                          <span className="px-2.5 py-1 text-[9px] font-pixel font-bold text-emerald-600 bg-emerald-50 rounded-lg border border-emerald-100">
+                            🏠 красуется дома
+                          </span>
                         ) : (
                           <button
                             onClick={() => onSelectPuzzle(toy)}
                             className="bg-rose-400 text-white hover:bg-rose-500 px-3 py-1.5 rounded-xl text-[9px] font-pixel font-bold cursor-pointer transition-all flex items-center gap-1"
                           >
                             <span>🎨 Раскрасить</span>
-                            <span className="text-amber-200">+{toy.yarnReward}🧶</span>
+                            <span className="text-amber-200 font-bold">+{toy.yarnReward}🧶</span>
                           </button>
                         )}
                         
@@ -365,17 +358,16 @@ export function DecorationsTab({
           <div className="space-y-3">
             <div className="bg-amber-50 rounded-2xl p-3 border border-amber-200/50 leading-tight">
               <span className="text-[10px] font-pixel text-amber-800 font-bold block mb-1">
-                🛍️ ЭКСКЛЮЗИВНЫЙ МАГАЗИН:
+                🛍 🌟 УЮТНАЯ МЕБЕЛЬ ДЛЯ ДОМА:
               </span>
               <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
-                Эти классные аксессуары не требуют раскрашивания! Покупай их за собранные мотки шерсти и сразу выставляй в игровую комнату котиков.
+                Эти классные аксессуары не требуют раскрашивания! Покупай их за собранные мотки шерсти, и они сразу же встанут на свои постоянные места в комнате котиков.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
               {SHOP_ITEMS.map((item) => {
                 const isBought = purchasedItems.includes(item.id);
-                const isPlaced = placedItems.some((placed) => placed.shopId === item.id);
 
                 return (
                   <div
@@ -384,7 +376,7 @@ export function DecorationsTab({
                   >
                     {/* Visual icon badge placeholder */}
                     <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center text-4xl shadow-inner shrink-0 border border-rose-100">
-                      {item.id === "cushion" ? "🛋️" : item.id === "luxury_tree" ? "🌳" : item.id === "golden_fish" ? "🥣" : "🌀"}
+                      {item.id === "cushion" ? "🛋️" : item.id === "luxury_tree" ? "🌳" : item.id === "golden_fish" ? "🥣" : item.id === "tunnel" ? "🌀" : "🏰"}
                     </div>
 
                     {/* Metadata controls details */}
@@ -405,16 +397,9 @@ export function DecorationsTab({
 
                       <div className="flex gap-2 mt-2 pt-2 border-t border-slate-50">
                         {isBought ? (
-                          <button
-                            onClick={() => handleTogglePlaceItem("shop", item.id, item.name)}
-                            className={`flex-1 text-center py-1.5 rounded-xl text-[9px] font-pixel font-bold border transition-all cursor-pointer ${
-                              isPlaced
-                                ? "bg-red-50 text-red-500 border-red-200/50"
-                                : "bg-emerald-500 text-white border-emerald-600"
-                            }`}
-                          >
-                            {isPlaced ? "✖ Убрать из дома" : "🏠 Добавить в дом"}
-                          </button>
+                          <span className="text-center py-1.5 rounded-xl text-[9px] font-pixel font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 w-full">
+                            🏠 куплено и добавлено
+                          </span>
                         ) : (
                           <button
                             onClick={() => handleBuyShopItem(item.id, item.name, item.price)}

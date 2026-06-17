@@ -46,6 +46,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
   // Custom design states synced with Decorations / Shop Equips
   const [rugTheme, setRugTheme] = useState<string>("pink");
   const [wallpaper, setWallpaper] = useState<string>("stripes");
+  const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
   
   const [activeSpeech, setActiveSpeech] = useState<{ [id: string]: string }>({});
   const [activeHeart, setActiveHeart] = useState<{ [id: string]: boolean }>({});
@@ -60,6 +61,37 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     (p) => p.category === "cats" && completedPuzzles.includes(p.id)
   );
 
+  const getToyPixelIcon = (puzzleId: string) => {
+    const template = puzzleTemplates.find((p) => p.id === puzzleId);
+    if (!template) return null;
+
+    return (
+      <div
+        className="grid select-none pointer-events-none"
+        style={{
+          gridTemplateColumns: `repeat(${template.width}, minmax(0, 1fr))`,
+          width: "36px",
+          height: "36px",
+        }}
+      >
+        {template.rows.flatMap((row, r) =>
+          row.split("").map((char, c) => {
+            const num = char === "." ? 0 : parseInt(char, 10);
+            const color = template.colors.find((colorInfo) => colorInfo.number === num);
+            return (
+              <div
+                key={`${r}-${c}`}
+                style={{
+                  backgroundColor: num === 0 ? "transparent" : color?.hex || "#999",
+                }}
+              />
+            );
+          })
+        )}
+      </div>
+    );
+  };
+
   // Sync / Load Room Design settings on mount and completedPuzzles changes
   useEffect(() => {
     // 1. Wallpaper themes Loader
@@ -72,6 +104,14 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
     const savedRug = localStorage.getItem("meowcolor_equipped_rug");
     if (savedRug) {
       setRugTheme(savedRug);
+    }
+
+    // 2b. Purchased Shop Items Loader
+    const savedPurchases = localStorage.getItem("meowcolor_purchased_items");
+    if (savedPurchases) {
+      try {
+        setPurchasedItems(JSON.parse(savedPurchases));
+      } catch (e) {}
     }
 
     // 3. Placed objects Loader
@@ -393,13 +433,52 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
           <div className="absolute inset-0 bg-stripesPattern opacity-5 pointer-events-none" />
         )}
 
-        {/* Baby Pink Sakura petals drifting decoration if sakura is active */}
-        {isDay && wallpaper === "sakura" && (
-          <div className="absolute top-2 inset-x-0 h-40 flex items-center justify-around pointer-events-none opacity-40">
-            <div className="text-lg animate-bounce duration-1000">🌸</div>
-            <div className="text-xl animate-bounce duration-750 mt-12">🌸</div>
-            <div className="text-sm animate-bounce duration-1200 mt-6">-🌸</div>
-            <div className="text-lg animate-bounce duration-1500">🌸</div>
+        {/* Starry Sky wallpaper stars (gorgeous, dense shimmering stars without wild animations) */}
+        {wallpaper === "stars" && (
+          <div className="absolute inset-0 pointer-events-none z-0">
+            {/* Soft background stars, beautiful colors and microglow effects */}
+            <div className="absolute top-4 left-6 text-xs text-yellow-100 opacity-80">★</div>
+            <div className="absolute top-12 left-24 text-sm text-yellow-200 opacity-90 drop-shadow-sm font-bold">★</div>
+            <div className="absolute top-6 left-48 text-[10px] text-white opacity-70">★</div>
+            <div className="absolute top-16 left-[55%] text-xs text-yellow-100 opacity-95">★</div>
+            <div className="absolute top-4 left-[75%] text-base text-amber-200 opacity-90 drop-shadow-md">★</div>
+            <div className="absolute top-14 left-[90%] text-[10px] text-white opacity-80">★</div>
+            <div className="absolute top-28 left-12 text-[10px] text-white opacity-75">★</div>
+            <div className="absolute top-24 left-[35%] text-xs text-yellow-100 opacity-80">★</div>
+            <div className="absolute top-32 left-[68%] text-sm text-yellow-200 opacity-90 font-bold">★</div>
+            <div className="absolute top-22 left-[82%] text-xs text-white opacity-70">★</div>
+            <div className="absolute top-6 right-24 text-xs text-amber-200 opacity-85">★</div>
+            <div className="absolute top-16 right-4 text-[10px] text-yellow-100 opacity-75">★</div>
+          </div>
+        )}
+
+        {/* Blooming Sakura wallpaper: static flowers lining the perimeter (non-animated, dense, elegant) */}
+        {wallpaper === "sakura" && (
+          <div className="absolute inset-x-0 top-0 bottom-[28%] pointer-events-none z-0">
+            {/* Top border of sakura flowers */}
+            <div className="absolute top-2.5 left-2.5 text-xs">🌸</div>
+            <div className="absolute top-3 left-[12%] text-sm">🌸</div>
+            <div className="absolute top-1.5 left-[24%] text-base">🌸</div>
+            <div className="absolute top-3.5 left-[36%] text-xs">🌸</div>
+            <div className="absolute top-2 left-[48%] text-sm">🌸</div>
+            <div className="absolute top-1.5 left-[60%] text-base">🌸</div>
+            <div className="absolute top-3 left-[72%] text-xs">🌸</div>
+            <div className="absolute top-2 left-[84%] text-sm">🌸</div>
+            <div className="absolute top-2.5 left-[96%] text-xs">🌸</div>
+
+            {/* Left border of sakura flowers */}
+            <div className="absolute top-10 left-2 text-xs">🌸</div>
+            <div className="absolute top-20 left-3 text-xs">🌸</div>
+            <div className="absolute top-32 left-2 text-xs">🌸</div>
+            <div className="absolute top-44 left-3 text-xs">🌸</div>
+            <div className="absolute top-56 left-2 text-xs">🌸</div>
+
+            {/* Right border of sakura flowers */}
+            <div className="absolute top-10 right-2 text-xs">🌸</div>
+            <div className="absolute top-20 right-3 text-xs">🌸</div>
+            <div className="absolute top-32 right-2 text-xs">🌸</div>
+            <div className="absolute top-44 right-3 text-xs">🌸</div>
+            <div className="absolute top-56 right-2 text-xs">🌸</div>
           </div>
         )}
 
@@ -457,12 +536,73 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
             {placedCats.length === 0 && (
               <div className="absolute text-center px-4">
                 <span className="text-[10px] text-rose-800/80 font-pixel font-bold drop-shadow-xs max-w-[190px] block leading-tight">
-                  Перетащи котика или игрушку из меню в комнату! 🐾
+                  Перетащи милого котика из меню на коврик! 🐾
                 </span>
               </div>
             )}
           </div>
         </div>
+
+        {/* STATIC BOUGHT FURNITURE LAYER (No animations, fixed positions, non-draggable) */}
+        {[
+          { id: "cushion", left: "18%", top: "75%", graphic: <div className="text-4xl select-none">🛋️</div> },
+          { id: "luxury_tree", left: "14%", top: "45%", graphic: <div className="text-5xl select-none">🌳</div> },
+          { id: "golden_fish", left: "52%", top: "82%", graphic: <div className="text-3xl select-none">🥣</div> },
+          { id: "tunnel", left: "34%", top: "80%", graphic: <div className="text-4xl select-none">🌀</div> },
+          { id: "luxury_tower", left: "85%", top: "42%", graphic: (
+            <div className="flex flex-col items-center select-none" style={{ height: "130px" }}>
+              {/* Tier top */}
+              <div className="bg-amber-100 border border-amber-300 w-12 h-6 rounded-full flex items-center justify-center -mb-1 shadow-sm">
+                <span className="text-xs">🐱</span>
+              </div>
+              {/* Pillar */}
+              <div className="bg-amber-800 w-2 h-6" />
+              {/* Tier middle */}
+              <div className="bg-amber-100 border border-amber-300 w-14 h-6 rounded-full flex items-center justify-center -mb-1 shadow-sm">
+                <span className="text-xs">🧺</span>
+              </div>
+              {/* Pillar */}
+              <div className="bg-amber-800 w-2 h-6" />
+              {/* Bottom Tier (box cave) */}
+              <div className="bg-amber-950 border border-amber-800 w-16 h-12 rounded-lg flex items-center justify-center relative shadow-md">
+                <div className="w-8 h-8 rounded-full bg-black/80 flex items-center justify-center">
+                  <span className="text-[10px] text-amber-300 font-pixel font-bold">Zz..</span>
+                </div>
+              </div>
+            </div>
+          ) },
+        ].map((item) => {
+          if (!purchasedItems.includes(item.id)) return null;
+          return (
+            <div
+              key={item.id}
+              className="absolute z-1 pointer-events-none select-none transform -translate-x-1/2 -translate-y-1/2"
+              style={{ left: item.left, top: item.top }}
+            >
+              {item.graphic}
+            </div>
+          );
+        })}
+
+        {/* STATIC COMPLETED TOYS LAYER (No animations, fixed positions, non-draggable, colored by custom pixel grid) */}
+        {[
+          { id: "toy_yarn_ball", left: "68%", top: "73%" },
+          { id: "squeaky_mouse", left: "38%", top: "71%" },
+          { id: "toy_fish", left: "58%", top: "75%" },
+          { id: "toy_feather", left: "26%", top: "68%" },
+          { id: "toy_scratch", left: "76%", top: "67%" },
+        ].map((toy) => {
+          if (!completedPuzzles.includes(toy.id)) return null;
+          return (
+            <div
+              key={toy.id}
+              className="absolute z-1 pointer-events-none select-none transform -translate-x-1/2 -translate-y-1/2"
+              style={{ left: toy.left, top: toy.top }}
+            >
+              {getToyPixelIcon(toy.id)}
+            </div>
+          );
+        })}
 
         {/* FLOOR BACKGROUND COLOR */}
         <div
@@ -481,7 +621,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
             <div className="bg-white/95 rounded-2xl p-4 shadow-lg border border-rose-100 text-center max-w-[240px]">
               <HelpCircle className="w-6 h-6 text-rose-400 mx-auto mb-1 animate-bounce" />
               <p className="text-[10px] font-pixel text-slate-600 leading-relaxed">
-                Твоя комнатка пуста! Нажми на котика внизу или выбери украшения во вкладке «Украшения», чтобы оживить комнату!
+                Твоя комнатка пуста! Нажми на котика внизу, чтобы призвать его, или обустрой комнату во вкладке «Украшения»! 🐾
               </p>
             </div>
           </div>

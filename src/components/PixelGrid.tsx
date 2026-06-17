@@ -364,6 +364,68 @@ export function PixelGrid({
         </div>
       </div>
 
+      {/* 2. Power-up Boosters selection bar */}
+      <div className="flex justify-center items-center gap-2.5 px-4 py-2 bg-rose-50/70 border-b border-rose-100 z-10 shrink-0 select-none">
+        <span className="text-[10px] font-pixel text-rose-700 uppercase tracking-wide font-extrabold">
+          Бустеры:
+        </span>
+        
+        {/* Wand Booster */}
+        <button
+          id="booster-wand-btn"
+          disabled={powerupCounts.wand <= 0}
+          onClick={() => {
+            setToolMode("draw");
+            setActiveSpecialTool(activeSpecialTool === "wand" ? "pencil" : "wand");
+            SOUNDS.playPop(1.1);
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all cursor-pointer ${
+            activeSpecialTool === "wand"
+              ? "bg-indigo-600 text-white border-indigo-700 shadow-md scale-102"
+              : powerupCounts.wand > 0
+              ? "bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50/50"
+              : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50"
+          }`}
+          title="🪄 Волшебная палочка (Закрасить область одного цвета)"
+        >
+          <span>🪄 Палочка</span>
+          <span className="bg-indigo-200/50 text-[9px] px-1.5 py-0.2 rounded-full font-pixel">
+            {powerupCounts.wand}
+          </span>
+        </button>
+
+        {/* Bomb Booster */}
+        <button
+          id="booster-bomb-btn"
+          disabled={powerupCounts.bomb <= 0}
+          onClick={() => {
+            setToolMode("draw");
+            setActiveSpecialTool(activeSpecialTool === "bomb" ? "pencil" : "bomb");
+            SOUNDS.playPop(1.1);
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold border transition-all cursor-pointer ${
+            activeSpecialTool === "bomb"
+              ? "bg-amber-600 text-white border-amber-700 shadow-md scale-102"
+              : powerupCounts.bomb > 0
+              ? "bg-white text-amber-700 border-amber-200 hover:bg-amber-50/50"
+              : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50"
+          }`}
+          title="💣 Бомбочка (Красит область 3х3 выбранного цвета)"
+        >
+          <span>💣 Бомбочка</span>
+          <span className="bg-amber-200/50 text-[9px] px-1.5 py-0.2 rounded-full font-pixel">
+            {powerupCounts.bomb}
+          </span>
+        </button>
+
+        {/* Info/Notice when active */}
+        {activeSpecialTool !== "pencil" && (
+          <span className="text-[9px] font-pixel text-rose-500 animate-pulse ml-2 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-150">
+            кликни пиксель! 🎯
+          </span>
+        )}
+      </div>
+
       {/* 3. Main Virtual Drawing Board Frame */}
       <div
         ref={containerRef}
