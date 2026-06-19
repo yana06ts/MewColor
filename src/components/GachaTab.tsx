@@ -69,6 +69,10 @@ interface GachaTabProps {
   puzzleTemplates: PuzzleTemplate[];
   completedPuzzles: string[];
   setCompletedPuzzles: React.Dispatch<React.SetStateAction<string[]>>;
+  gachaUnlockedCats: string[];
+  updateGachaUnlockedCats: (val: string[]) => void;
+  catDuplicates: Record<string, number>;
+  updateCatDuplicates: (val: Record<string, number>) => void;
 }
 
 export function GachaTab({
@@ -83,19 +87,22 @@ export function GachaTab({
   puzzleTemplates,
   completedPuzzles,
   setCompletedPuzzles,
+  gachaUnlockedCats,
+  updateGachaUnlockedCats,
+  catDuplicates,
+  updateCatDuplicates,
 }: GachaTabProps) {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [activeDrawResult, setActiveDrawResult] = useState<any[] | null>(null);
 
   // List of possible cats for summoning / duplicate level merges
   const poolCats = puzzleTemplates.filter((p) => p.category === "cats");
-  const poolToys = puzzleTemplates.filter((p) => p.category === "toys");
 
-  // Spin rates: 40% Regular Yarn, 20% Gold Yarn, 30% Draggable Cats progress/merge, 10% Secret coloring pages!
+  // Spin rates: 35% Regular Yarn, 20% Crystals 💎, 45% Cat Summon / Duplicates 🎁
   const triggerDrawGacha = (costType: "ticket" | "yarn") => {
     if (costType === "ticket" && gachaTickets < 1) {
       playSound("error");
-      alert("У тебя нет билетов! Собери их в Кошачьем доме🧺 или накопи обычную пряжу 🧶.");
+      alert("У тебя нет купонов! Собери их в Кошачьем доме🧺 или накопи обычную пряжу 🧶.");
       return;
     }
     if (costType === "yarn" && yarnCount < 100) {
@@ -114,81 +121,62 @@ export function GachaTab({
     playSound("pop");
     setIsDrawing(true);
 
-    // Simulate epic 1.5s cardboard shake sequence
+    // Simulate epic 1.2s cardboard shake sequence
     setTimeout(() => {
       const rolledResults = [];
-      // Let's roll a single high-quality outcome
       const rng = Math.random();
 
       if (rng < 0.35) {
         // Roll standard Yarn Prize
         const rngYarn = Math.random() > 0.5 ? 150 : 250;
-        updateYarn(yarnCount - (costType === "yarn" ? 100 : 0) + rngYarn);
+        updateYarn((costType === "yarn" ? yarnCount - 100 : yarnCount) + rngYarn);
         rolledResults.push({
           type: "yarn",
           amount: rngYarn,
-          title: "Обычная Пряжа",
+          title: `Обычная Пряжа (+${rngYarn} 🧶)`,
           emoji: "🧶",
           desc: "Целый ворох мягких разноцветных ниточек для обустройства комнаты!",
         });
       } else if (rng < 0.55) {
-        // Roll highly coveted GOLD YARN Prize!
-        const rngGold = Math.random() > 0.6 ? 10 : 5;
-        updateGoldYarn(goldYarnCount + rngGold);
+        // Roll highly coveted Crystals Prize!
+        const rngCrystal = Math.random() > 0.6 ? 10 : 5;
+        updateGoldYarn(goldYarnCount + rngCrystal);
         rolledResults.push({
-          type: "gold_yarn",
-          amount: rngGold,
-          title: "Золотая Пряжа",
-          emoji: "🌟",
-          desc: "Редкие сияющие нити! Используй их для покупки красивых костюмов и шляпок.",
+          type: "crystals",
+          amount: rngCrystal,
+          title: `Кристаллы (+${rngCrystal} 💎)`,
+          emoji: "💎",
+          desc: "Редкие сияющие кристаллы! Используй их для покупки красивых костюмов и шляпок.",
         });
       } else {
-        // Roll a cat summon/level upgrade
+        // Roll a cat summon/duplicate
         const chosenCat = poolCats[Math.floor(Math.random() * poolCats.length)];
-        const curLevel = catLevels[chosenCat.id] || 1;
-        const isAlreadyComplete = completedPuzzles.includes(chosenCat.id);
+        const isUnlocked = completedPuzzles.includes(chosenCat.id) || gachaUnlockedCats.includes(chosenCat.id);
 
-        if (!isAlreadyComplete) {
-          // If coloring page is locked, give them the recipe & auto-unlock coloring page!
-          const newCompletedList = [...completedPuzzles, chosenCat.id];
-          setCompletedPuzzles(newCompletedList);
-          localStorage.setItem("meowcolor_completed", JSON.stringify(newCompletedList));
+        if (!isUnlocked) {
+          // Add to gacha unlocked list (so it remains locked in catalog but is unlocked inside the shelter!)
+          const nextSaves = [...gachaUnlockedCats, chosenCat.id];
+          updateGachaUnlockedCats(nextSaves);
 
           rolledResults.push({
             type: "cat_unlock",
             catId: chosenCat.id,
-            title: `Новая Раскраска: ${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()}`,
-            emoji: "🎨🐈",
-            desc: "Ура! Ты открыл новую уникальную раскраску в каталоге! Иди раскрась котика.",
+            title: `Новый Кот: ${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()}`,
+            emoji: "🐱✨",
+            desc: "Ура! Ты открыл нового пушистого друга для комнаты! Зайди во вкладку «Дом», чтобы разместить его.",
           });
         } else {
-          // If already completed, MERGE & LEVEL UP!
-          const newLvl = Math.min(5, curLevel + 1);
-          const isMaxed = curLevel >= 5;
+          // If already owned, give duplicates token for manual level ups!
+          const duplicateCount = catDuplicates[chosenCat.id] || 0;
+          updateCatDuplicates({ ...catDuplicates, [chosenCat.id]: duplicateCount + 1 });
 
-          if (isMaxed) {
-            // Give refund of 5 Gold yarn
-            updateGoldYarn(goldYarnCount + 5);
-            rolledResults.push({
-              type: "cat_refund",
-              catId: chosenCat.id,
-              title: `${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()} (Максимум)`,
-              emoji: "👑",
-              desc: "Этот котик уже достиг максимального 5 уровня! Взамен начислено +5 Золотой Пряжи 🌟.",
-            });
-          } else {
-            const nextLevels = { ...catLevels, [chosenCat.id]: newLvl };
-            updateCatLevels(nextLevels);
-
-            rolledResults.push({
-              type: "cat_level_up",
-              catId: chosenCat.id,
-              level: newLvl,
-              title: `${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()} ★ Lvl ${newLvl}`,
-              emoji: "⚡😸",
-              desc: `Успешное слияние! Пассивный доход этого котика увеличен на +25% (всего +${(newLvl - 1) * 25}% bonus!).`,
-            });
-          }
+          rolledResults.push({
+            type: "cat_duplicate",
+            catId: chosenCat.id,
+            title: `Дубликат: ${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()}`,
+            emoji: "🎁",
+            desc: "У вас уже есть этот котик! Вы получили +1 Дубликат. Используйте его в Кото-доме🧺 для ручной прокачки.",
+          });
         }
       }
 
@@ -207,15 +195,17 @@ export function GachaTab({
     }
 
     // Deduct cost
-    updateYarn(yarnCount - 450);
+    const startYarn = yarnCount - 450;
+    updateYarn(startYarn);
     playSound("pop");
     setIsDrawing(true);
 
     setTimeout(() => {
       const rolledResults: any[] = [];
-      let tempYarn = yarnCount - 450;
-      let tempGold = goldYarnCount;
-      const tempLevels = { ...catLevels };
+      let tempYarn = startYarn;
+      let tempCrystals = goldYarnCount;
+      const tempGachaUnlocked = [...gachaUnlockedCats];
+      const tempDuplicates = { ...catDuplicates };
 
       for (let i = 0; i < 5; i++) {
         const rng = Math.random();
@@ -226,68 +216,52 @@ export function GachaTab({
           rolledResults.push({
             type: "yarn",
             amount: rngYarn,
-            title: "Обычная Пряжа",
+            title: `Обычная Пряжа (+${rngYarn} 🧶)`,
             emoji: "🧶",
             desc: "Нити для покупок красок!",
           });
         } else if (rng < 0.55) {
-          const rngGold = Math.random() > 0.6 ? 8 : 4;
-          tempGold += rngGold;
+          const rngCrystal = Math.random() > 0.6 ? 8 : 4;
+          tempCrystals += rngCrystal;
           rolledResults.push({
-            type: "gold_yarn",
-            amount: rngGold,
-            title: "Золотая Пряжа",
-            emoji: "🌟",
-            desc: "Сияющие золотые мотки!",
+            type: "crystals",
+            amount: rngCrystal,
+            title: `Кристаллы (+${rngCrystal} 💎)`,
+            emoji: "💎",
+            desc: "Сияющие драгоценные камни!",
           });
         } else {
           const chosenCat = poolCats[Math.floor(Math.random() * poolCats.length)];
-          const curLevel = tempLevels[chosenCat.id] || 1;
-          const isAlreadyComplete = completedPuzzles.includes(chosenCat.id);
+          const isUnlocked = completedPuzzles.includes(chosenCat.id) || tempGachaUnlocked.includes(chosenCat.id);
 
-          if (!isAlreadyComplete) {
-            // Auto unlock
-            completedPuzzles.push(chosenCat.id);
-            setCompletedPuzzles([...completedPuzzles]);
-            localStorage.setItem("meowcolor_completed", JSON.stringify(completedPuzzles));
-
+          if (!isUnlocked) {
+            tempGachaUnlocked.push(chosenCat.id);
             rolledResults.push({
               type: "cat_unlock",
               catId: chosenCat.id,
-              title: `Новая Раскраска: ${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()}`,
-              emoji: "🎨🐈",
-              desc: "Разблокирована раскраска в каталоге!",
+              title: `Новый Кот: ${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()}`,
+              emoji: "🐱✨",
+              desc: "Ура! Ты разблокировал котика для своей Кото-Комнаты!",
             });
           } else {
-            const newLvl = Math.min(5, curLevel + 1);
-            if (curLevel >= 5) {
-              tempGold += 5;
-              rolledResults.push({
-                type: "cat_refund",
-                catId: chosenCat.id,
-                title: `${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()} (Cap)`,
-                emoji: "👑",
-                desc: "Взамен начислено +5 Золотой Пряжи 🌟.",
-              });
-            } else {
-              tempLevels[chosenCat.id] = newLvl;
-              rolledResults.push({
-                type: "cat_level_up",
-                catId: chosenCat.id,
-                level: newLvl,
-                title: `${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()} ★ Lvl ${newLvl}`,
-                emoji: "⚡😸",
-                desc: `Пассивная генерация повышена до Lvl ${newLvl}!`,
-              });
-            }
+            const currentDupCount = tempDuplicates[chosenCat.id] || 0;
+            tempDuplicates[chosenCat.id] = currentDupCount + 1;
+            rolledResults.push({
+              type: "cat_duplicate",
+              catId: chosenCat.id,
+              title: `Дубликат: ${chosenCat.name.replace(/[🐾🐈‍⬛]/g, "").trim()}`,
+              emoji: "🎁",
+              desc: "Получен +1 Дубликат для прокачки в Кошачьем доме!",
+            });
           }
         }
       }
 
       // Bulk write
       updateYarn(tempYarn);
-      updateGoldYarn(tempGold);
-      updateCatLevels(tempLevels);
+      updateGoldYarn(tempCrystals);
+      updateGachaUnlockedCats(tempGachaUnlocked);
+      updateCatDuplicates(tempDuplicates);
 
       setActiveDrawResult(rolledResults);
       setIsDrawing(false);
@@ -299,7 +273,7 @@ export function GachaTab({
     <div className="flex flex-col h-full bg-[#fcf8f2] select-none text-slate-800 p-4 space-y-4 pb-20 overflow-y-auto">
       
       {/* Header Title Area */}
-      <div className="text-center space-y-1">
+      <div className="text-center space-y-1 animate-fade-in">
         <h2 className="text-lg font-extrabold text-rose-700 tracking-tight flex items-center justify-center gap-1.5 font-sans uppercase">
           <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
           Автомат Коробка Удачи
@@ -318,11 +292,9 @@ export function GachaTab({
               key="box-shaking"
               animate={{
                 rotate: [-6, 6, -6, 6, -3, 3, -1, 1, 0],
-                y: [0, -8, 0, -8, -4, 0],
-                scale: [1, 1.05, 1, 1.05, 1]
               }}
               transition={{
-                duration: 1.1,
+                duration: 1.2,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
@@ -339,7 +311,7 @@ export function GachaTab({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => triggerDrawGacha(gachaTickets > 0 ? "ticket" : "yarn")}
-              className="text-center cursor-pointer flex flex-col items-center"
+              className="text-center cursor-pointer flex flex-col items-center animate-fade-in"
             >
               <div className="relative">
                 <div className="text-8.5xl drop-shadow-xl select-none">📦</div>
@@ -360,7 +332,7 @@ export function GachaTab({
       <div className="bg-[#e6ccb2]/40 rounded-3xl p-3 border border-[#ddb892]/50 grid grid-cols-3 gap-2.5 text-center text-xs">
         <div className="flex flex-col items-center p-1.5 bg-white/50 rounded-xl">
           <span className="text-[8px] font-pixel text-slate-400 font-bold whitespace-nowrap">У ТЕБЯ КУПОНОВ</span>
-          <span className="text-xs font-extrabold text-rose-600 mt-1 flex items-center gap-0.5">
+          <span className="text-xs font-extrabold text-[#e05780] mt-1 flex items-center gap-0.5">
             🎟️ {gachaTickets}
           </span>
         </div>
@@ -371,9 +343,9 @@ export function GachaTab({
           </span>
         </div>
         <div className="flex flex-col items-center p-1.5 bg-white/50 rounded-xl">
-          <span className="text-[8px] font-pixel text-slate-400 font-bold whitespace-nowrap">ЗОЛОТАЯ ПРЯЖА</span>
-          <span className="text-xs font-extrabold text-[#d4a373] mt-1 flex items-center gap-0.5 font-mono">
-            🌟 {goldYarnCount}
+          <span className="text-[8px] font-pixel text-slate-400 font-bold whitespace-nowrap">КРИСТАЛЛЫ</span>
+          <span className="text-xs font-extrabold text-sky-600 mt-1 flex items-center gap-0.5 font-mono">
+            💎 {goldYarnCount}
           </span>
         </div>
       </div>
@@ -381,16 +353,16 @@ export function GachaTab({
       {/* Drawing Actions Buttons */}
       <div className="grid grid-cols-3 gap-2.5">
         
-        {/* Draw via Ticket */}
+        {/* Draw via Coupon */}
         <button
           onClick={() => triggerDrawGacha("ticket")}
           disabled={isDrawing}
           className="flex flex-col items-center justify-between p-2.5 bg-white border border-rose-100 hover:border-rose-300 hover:bg-rose-50/20 active:scale-95 rounded-2xl cursor-pointer disabled:opacity-50 transition-all shadow-sm"
         >
-          <span className="text-[8px] font-pixel text-slate-400 font-black">ОТКРЫТЬ КРУТКОЙ</span>
+          <span className="text-[8px] font-pixel text-slate-400 font-black">ОТКРЫТЬ ЗА КУПОН</span>
           <span className="text-xl my-1">🎟️</span>
           <span className="text-[9px] bg-rose-500 text-white rounded-full font-bold px-2 py-0.5">
-            1 Крутка
+            1 Купон
           </span>
         </button>
 
@@ -400,8 +372,8 @@ export function GachaTab({
           disabled={isDrawing || yarnCount < 100}
           className="flex flex-col items-center justify-between p-2.5 bg-white border border-amber-100 hover:border-amber-300 hover:bg-amber-50/20 active:scale-95 rounded-2xl cursor-pointer disabled:opacity-50 transition-all shadow-sm"
         >
-          <span className="text-[8px] font-pixel text-slate-400 font-black">ОТКРЫТЬ ЗА ПРЯЖУ</span>
-          <span className="text-xl my-1">🧶</span>
+          <span className="text-[8px] font-pixel text-slate-400 font-black font-semibold">ОТКРЫТЬ ЗА ПРЯЖУ</span>
+          <span className="text-xl my-1 font-semibold">🧶</span>
           <span className="text-[9px] bg-amber-600 text-white rounded-full font-bold px-2 py-0.5">
             100 🧶
           </span>
@@ -413,11 +385,11 @@ export function GachaTab({
           disabled={isDrawing || yarnCount < 450}
           className="flex flex-col items-center justify-between p-2.5 bg-amber-50/40 border border-amber-300 hover:border-amber-400 hover:bg-amber-100/30 active:scale-95 rounded-2xl cursor-pointer disabled:opacity-50 transition-all shadow-sm relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 bg-red-500 text-white text-[6px] font-pixel px-1 rounded-bl-md uppercase">
+          <div className="absolute top-0 right-0 bg-red-500 text-white text-[6px] font-pixel px-1 rounded-bl-md uppercase font-semibold">
             Скидка!
           </div>
           <span className="text-[8px] font-pixel text-amber-700 font-black">МЕГА-ПАК x5</span>
-          <span className="text-xl my-0.5">🌟📦</span>
+          <span className="text-xl my-0.5">💎📦</span>
           <span className="text-[9px] bg-amber-700 text-white rounded-full font-black px-1.5 py-0.5 transition-colors">
             450 🧶
           </span>
@@ -431,9 +403,9 @@ export function GachaTab({
         <div className="space-y-0.5">
           <p className="font-bold text-slate-700 font-pixel text-[9px] uppercase">Шансы получения предметов в коробке:</p>
           <ul className="text-[8px] list-disc pl-3 font-medium text-slate-500 space-y-0.5">
-            <li><strong className="text-slate-650">Обычная Пряжа (35% вероятность)</strong> — выпадает от 150 до 250 мотков.</li>
-            <li><strong className="text-slate-650">Золотая Пряжа (20% вероятность)</strong> — от 4 до 10 золотых сияющих мотков.</li>
-            <li><strong className="text-slate-650">Кошачий призыв (45% вероятность)</strong> — при выпадении котика, которого у вас ещё нет, его раскраска auto-разблокируется бесплатно! Если котик уже разблокирован, его уровень повышается на +1 (макс Lvl 5, даёт +25% доход!), а при достижении лимита выдаётся +5 Золотой Пряжи.</li>
+            <li><strong className="text-slate-650">Обычная Пряжа (35% вероятность)</strong> — выпадает от 120 до 250 мотков.</li>
+            <li><strong className="text-slate-650">Кристаллы (20% вероятность)</strong> — выпадает от 4 до 10 редких сияющих кристаллов 💎.</li>
+            <li><strong className="text-slate-650">Кошачий призыв (45% вероятность)</strong> — шанс открыть нового котика в комнате! Если этот котик у вас уже разблокирован, вы получаете карточку его дубликата 🎁 для прокачки уровней в Кошачьем доме.</li>
           </ul>
         </div>
       </div>
@@ -452,7 +424,7 @@ export function GachaTab({
                 🎉 ТВОЙ ВЫИГРЫШ! 🎉
               </h3>
               
-              <div className="my-4 space-y-4 max-h-[290px] overflow-y-auto pr-1 no-scrollbar">
+              <div className="my-4 space-y-4 max-h-[290px] overflow-y-auto pr-1 no-scrollbar animate-fade-in">
                 {activeDrawResult.map((res, i) => (
                   <motion.div
                     key={i}

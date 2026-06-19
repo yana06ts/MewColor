@@ -35,17 +35,19 @@ export default function App() {
 
   // 1. Core user states
   const [completedPuzzles, setCompletedPuzzles] = useState<string[]>([]);
-  const [yarnCount, setYarnCount] = useState<number>(150); // standard initial points
+  const [yarnCount, setYarnCount] = useState<number>(0); // standard initial points set to 0 for new players
   const [powerups, setPowerups] = useState({ wand: 3, bomb: 3, magnifier: 3 });
   const [customPuzzles, setCustomPuzzles] = useState<PuzzleTemplate[]>([]);
 
   // Premium progress/reward states
-  const [goldYarnCount, setGoldYarnCount] = useState<number>(10);
-  const [gachaTickets, setGachaTickets] = useState<number>(2);
+  const [goldYarnCount, setGoldYarnCount] = useState<number>(0); // crystals initially at 0
+  const [gachaTickets, setGachaTickets] = useState<number>(0); // coupons initially at 0
   const [catLevels, setCatLevels] = useState<Record<string, number>>({});
   const [equippedSkins, setEquippedSkins] = useState<Record<string, string>>({});
   const [unlockedSkins, setUnlockedSkins] = useState<string[]>([]);
   const [claimedAchievements, setClaimedAchievements] = useState<string[]>([]);
+  const [gachaUnlockedCats, setGachaUnlockedCats] = useState<string[]>([]);
+  const [catDuplicates, setCatDuplicates] = useState<Record<string, number>>({});
 
   // 2. Navigation states
   const [activeTab, setActiveTab] = useState<"puzzles" | "room" | "decorations" | "gacha">("puzzles");
@@ -153,6 +155,20 @@ export default function App() {
       } catch (e) {}
     }
 
+    const savedGachaUnlocked = localStorage.getItem("meowcolor_gacha_unlocked");
+    if (savedGachaUnlocked) {
+      try {
+        setGachaUnlockedCats(JSON.parse(savedGachaUnlocked));
+      } catch (e) {}
+    }
+
+    const savedDuplicates = localStorage.getItem("meowcolor_cat_duplicates");
+    if (savedDuplicates) {
+      try {
+        setCatDuplicates(JSON.parse(savedDuplicates));
+      } catch (e) {}
+    }
+
     // Sound prefer
     const savedSound = localStorage.getItem("meowcolor_sound_on");
     if (savedSound !== null) {
@@ -181,6 +197,16 @@ export default function App() {
   const updateCatLevels = (newVal: Record<string, number>) => {
     setCatLevels(newVal);
     localStorage.setItem("meowcolor_cat_levels", JSON.stringify(newVal));
+  };
+
+  const updateGachaUnlockedCats = (newVal: string[]) => {
+    setGachaUnlockedCats(newVal);
+    localStorage.setItem("meowcolor_gacha_unlocked", JSON.stringify(newVal));
+  };
+
+  const updateCatDuplicates = (newVal: Record<string, number>) => {
+    setCatDuplicates(newVal);
+    localStorage.setItem("meowcolor_cat_duplicates", JSON.stringify(newVal));
   };
 
   const updateEquippedSkins = (newVal: Record<string, string>) => {
@@ -291,9 +317,9 @@ export default function App() {
         }
       }
 
-      // Add yarn rewards (rebalanced! First-time reward is reduced to about 35%, and repeat is reduced to 8% to match user requests!)
+      // Add yarn rewards (paid exactly according to the displayed catalog amount!)
       const originalReward = selectedPuzzle!.yarnReward;
-      const finalReward = isFirstTime ? Math.max(10, Math.floor(originalReward * 0.35)) : Math.max(2, Math.floor(originalReward * 0.08));
+      const finalReward = isFirstTime ? originalReward : Math.max(5, Math.floor(originalReward * 0.15));
       updateYarn(yarnCount + finalReward);
 
       // Clear partial progress state storage
@@ -343,7 +369,15 @@ export default function App() {
     if (confirm("Вы уверены, что хотите сбросить прогресс? Это очистит ваших котиков и раскраски.")) {
       localStorage.clear();
       setCompletedPuzzles([]);
-      setYarnCount(150);
+      setYarnCount(0); // set to 0 as request
+      setGoldYarnCount(0); // set to 0 as request
+      setGachaTickets(0); // set to 0 as request
+      setCatLevels({});
+      setGachaUnlockedCats([]);
+      setCatDuplicates({});
+      setEquippedSkins({});
+      setUnlockedSkins([]);
+      setClaimedAchievements([]);
       setPowerups({ wand: 3, bomb: 3, magnifier: 3 });
       setCustomPuzzles([]);
       setSelectedPuzzle(null);
@@ -491,12 +525,12 @@ export default function App() {
                 <span>{yarnCount}</span>
               </button>
 
-              {/* Gold Yarn bubble display */}
+              {/* Crystals bubble display */}
               <div
-                className="flex items-center gap-0.5 bg-gradient-to-r from-amber-500 to-amber-400 border border-amber-350 px-2 py-0.5 rounded-full text-[10px] font-pixel shadow-xs scale-90 text-slate-950 font-bold"
-                title="Золотая пряжа 🌟"
+                className="flex items-center gap-0.5 bg-gradient-to-r from-sky-450 to-sky-500 border border-sky-300 px-2 py-0.5 rounded-full text-[10px] font-pixel shadow-xs scale-90 text-white font-bold"
+                title="Кристаллы 💎"
               >
-                <span>🌟</span>
+                <span>💎</span>
                 <span>{goldYarnCount}</span>
               </div>
             </div>
@@ -765,6 +799,10 @@ export default function App() {
                   updateEquippedSkins={updateEquippedSkins}
                   unlockedSkins={unlockedSkins}
                   updateUnlockedSkins={updateUnlockedSkins}
+                  gachaUnlockedCats={gachaUnlockedCats}
+                  updateGachaUnlockedCats={updateGachaUnlockedCats}
+                  catDuplicates={catDuplicates}
+                  updateCatDuplicates={updateCatDuplicates}
                 />
               </div>
             )}
@@ -799,6 +837,10 @@ export default function App() {
                   puzzleTemplates={allAvailablePuzzles}
                   completedPuzzles={completedPuzzles}
                   setCompletedPuzzles={setCompletedPuzzles}
+                  gachaUnlockedCats={gachaUnlockedCats}
+                  updateGachaUnlockedCats={updateGachaUnlockedCats}
+                  catDuplicates={catDuplicates}
+                  updateCatDuplicates={updateCatDuplicates}
                 />
               </div>
             )}
@@ -1302,8 +1344,8 @@ export default function App() {
                             {acc.desc}
                           </p>
                         </div>
-                        <span className="text-[9px] font-pixel bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
-                          +{acc.gYarnReward} 🌟
+                        <span className="text-[9px] font-pixel bg-sky-200 text-sky-900 border border-sky-300 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
+                          +{acc.gYarnReward} 💎
                         </span>
                       </div>
 
@@ -1319,9 +1361,9 @@ export default function App() {
                               updateClaimedAchievements([...claimedAchievements, acc.id]);
                               SOUNDS.playSuccessColor();
                             }}
-                            className="w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-1 rounded-lg text-[8px] font-pixel cursor-pointer tracking-wider animate-bounce uppercase shadow-xs duration-150"
+                            className="w-full text-center bg-sky-500 hover:bg-sky-600 text-white font-black py-1 rounded-lg text-[8px] font-pixel cursor-pointer tracking-wider animate-bounce uppercase shadow-xs duration-150"
                           >
-                            Забрать Награду! 🌟
+                            Забрать Награду! 💎
                           </button>
                         ) : (
                           <span className="text-[8px] font-pixel text-slate-400 flex items-center justify-center gap-0.5 font-bold uppercase">
