@@ -445,9 +445,6 @@ export function CatRoom({
       setActiveHeart((prev) => ({ ...prev, [cat.id]: false }));
     }, 1200);
 
-    // Set selected detail cat modal!
-    setSelectedDetailCat(cat);
-
     // Randomize sleeping/flipping state slightly on click
     const updated = placedCats.map((c) => {
       if (c.id === cat.id) {
@@ -900,7 +897,7 @@ export function CatRoom({
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-lg w-full max-h-[85%] flex flex-col relative z-50 text-slate-800"
+                className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-lg w-full h-[90%] sm:h-auto max-h-[92%] flex flex-col relative z-50 text-slate-800"
               >
                 <button
                   onClick={() => setIsBasketOpen(false)}
@@ -966,7 +963,7 @@ export function CatRoom({
                       </p>
                     </div>
 
-                    <div className="space-y-1.5 max-h-[170px] overflow-y-auto pr-0.5 scrollbar-thin">
+                    <div className="space-y-1.5 max-h-[280px] sm:max-h-[180px] overflow-y-auto pr-0.5 scrollbar-thin">
                       {activeSynergiesInfo.map((syn) => (
                         <div
                           key={syn.catId}
@@ -1523,6 +1520,34 @@ export function CatRoom({
                 </div>
               </div>
 
+              {/* Home placement toggler inside details */}
+              {(() => {
+                const catId = selectedDetailCat.puzzleId || "";
+                const isPlacedInHome = placedCats.some((c) => c.puzzleId === catId);
+                return isPlacedInHome ? (
+                  <button
+                    onClick={() => {
+                      const placedCat = placedCats.find((c) => c.puzzleId === catId);
+                      if (placedCat) {
+                        handleRemoveCat(placedCat.id);
+                      }
+                    }}
+                    className="w-full text-center bg-red-550 hover:bg-red-600 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs select-none"
+                  >
+                    ✖ Убрать из дома
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handlePlaceCat(catId);
+                    }}
+                    className="w-full text-center bg-emerald-550 hover:bg-emerald-600 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs select-none"
+                  >
+                    🏠 Поставить в дом
+                  </button>
+                );
+              })()}
+
               {/* Action play button */}
               <button
                 onClick={() => {
@@ -1532,7 +1557,7 @@ export function CatRoom({
                   SOUNDS.playMeow();
                   setSelectedDetailCat(null);
                 }}
-                className="w-full text-center bg-rose-400 hover:bg-rose-500 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs mt-1"
+                className="w-full text-center bg-rose-450 hover:bg-rose-550 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs mt-0.5"
               >
                 Погладить Котика 🐾❤️
               </button>
@@ -1640,27 +1665,29 @@ export function CatRoom({
                         )}
                       </div>
 
-                      {/* Right: Room placement manual actions */}
-                      <div className="shrink-0 flex flex-col items-center gap-1 justify-center border-l border-slate-205 pl-1.5">
-                        {isPlaced ? (
-                          <button
-                            onClick={() => {
-                              handleRemoveCat(placedCat.id);
-                            }}
-                            className="bg-red-500 hover:bg-red-600 text-white text-[7px] font-pixel py-0.8 px-1.5 rounded-md cursor-pointer font-extrabold uppercase transition-all"
-                          >
-                            Убрать
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              handlePlaceCat(catId);
-                            }}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white text-[7px] font-pixel py-0.8 px-1.5 rounded-md cursor-pointer font-extrabold uppercase transition-all"
-                          >
-                            Добавить
-                          </button>
-                        )}
+                      {/* Right: Detailed Info Trigger */}
+                      <div className="shrink-0 flex items-center justify-center border-l border-slate-200 pl-1.5">
+                        <button
+                          onClick={() => {
+                            const activeCat = placedCats.find((c) => c.puzzleId === catId);
+                            const tName = template.name.replace(/[🐾🐈‍⬛📦]/g, "").trim();
+                            const targetCat: PlacedCat = activeCat || {
+                              id: `temp_${catId}`,
+                              type: "cat",
+                              puzzleId: catId,
+                              name: tName,
+                              x: 50,
+                              y: 55,
+                              isSleeping: false,
+                              flipped: false,
+                            };
+                            setSelectedDetailCat(targetCat);
+                            SOUNDS.playPop(1.1);
+                          }}
+                          className="bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-[7.5px] font-pixel py-1.5 px-2.5 rounded-lg cursor-pointer font-bold uppercase transition-all shadow-3xs"
+                        >
+                          Подробнее ℹ️
+                        </button>
                       </div>
                     </div>
                   );

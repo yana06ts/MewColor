@@ -6,6 +6,8 @@ import { ShoppingBag, Palette, Sparkles, Smile, Star, Check, Lock, Heart, Gift }
 interface DecorationsTabProps {
   yarnCount: number;
   updateYarn: (newCount: number) => void;
+  goldYarnCount: number;
+  updateGoldYarn: (newCount: number) => void;
   completedPuzzles: string[]; // ids of completed puzzles
   puzzleTemplates: PuzzleTemplate[];
   onSelectPuzzle: (puzzle: PuzzleTemplate) => void;
@@ -26,6 +28,8 @@ interface PlacedItem {
 export function DecorationsTab({
   yarnCount,
   updateYarn,
+  goldYarnCount,
+  updateGoldYarn,
   completedPuzzles,
   puzzleTemplates,
   onSelectPuzzle,
@@ -36,6 +40,8 @@ export function DecorationsTab({
     { id: "golden_fish", name: "Миска с карасями 🥣", price: 25, description: "Полная миска свежих карасей для сытого кошачьего мурчания. +15% к общей скорости сбора пряжи! ⚡" },
     { id: "tunnel", name: "Коробка мечты 📦", price: 40, description: "Простая картонная коробка — идеальный замок для любого котика. +15% к общей скорости сбора пряжи! ⚡" },
     { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками. +45% к общей скорости сбора пряжи! ⚡" },
+    { id: "cat_tree", name: "Кото-Дерево 🌳", crystalPrice: 35, description: "Роскошный деревянный комплекс с лесенками и домиками. +50% к общей скорости сбора пряжи! ⚡" },
+    { id: "aquarium", name: "Аквариум с рыбками 🐠", crystalPrice: 20, description: "Подводный мир прямо в комнате — котики в восторге от живых рыбок! +30% к общей скорости сбора пряжи! ⚡" },
   ];
 
   // 2. Rug designs config
@@ -44,6 +50,7 @@ export function DecorationsTab({
     { id: "blue", name: "Морская волна 💙", price: 35, color: "bg-sky-200" },
     { id: "green", name: "Сочная травка 💚", price: 35, color: "bg-emerald-200" },
     { id: "boho", name: "Горчичный пирог 💛", price: 35, color: "bg-amber-200" },
+    { id: "space_rug", name: "Звёздный ковер 🌌", crystalPrice: 15, color: "bg-indigo-900" },
   ];
 
   // 3. Wallpapers config
@@ -51,6 +58,7 @@ export function DecorationsTab({
     { id: "stripes", name: "Уютная доска 🪵", price: 0, preview: "bg-orange-100" },
     { id: "stars", name: "Звёздное небо 🌌", price: 45, preview: "bg-indigo-950" },
     { id: "sakura", name: "Цветущая сакура 🌸", preview: "bg-pink-100", price: 45 },
+    { id: "neon_wallpaper", name: "Космические обои 👾", crystalPrice: 25, preview: "bg-purple-950" },
   ];
 
   // State loaded from localStorage
@@ -145,14 +153,26 @@ export function DecorationsTab({
   };
 
   // Direct Purchase Shop item
-  const handleBuyShopItem = (id: string, name: string, price: number) => {
-    if (yarnCount < price) {
-      SOUNDS.playError();
-      alert("Недостаточно мотков пряжи! Раскрашивай картинки во вкладке «Раскраски», чтобы заработать больше пряжи! 🧶");
+  const handleBuyShopItem = (id: string, name: string, price?: number, crystalPrice?: number) => {
+    if (crystalPrice !== undefined) {
+      if (goldYarnCount < crystalPrice) {
+        SOUNDS.playError();
+        alert("Недостаточно кристаллов! Получай кристаллы 💎 в колесе фортуны или за раскраски!");
+        return;
+      }
+      const nextCrystals = goldYarnCount - crystalPrice;
+      updateGoldYarn(nextCrystals);
+    } else if (price !== undefined) {
+      if (yarnCount < price) {
+        SOUNDS.playError();
+        alert("Недостаточно мотков пряжи! Раскрашивай картинки во вкладке «Раскраски», чтобы заработать больше пряжи! 🧶");
+        return;
+      }
+      const nextYarn = yarnCount - price;
+      updateYarn(nextYarn);
+    } else {
       return;
     }
-    const nextYarn = yarnCount - price;
-    updateYarn(nextYarn);
 
     const nextPurchased = [...purchasedItems, id];
     setPurchasedItems(nextPurchased);
@@ -163,7 +183,7 @@ export function DecorationsTab({
       id: `placed_shop_${id}_${Date.now()}`,
       type: "shop",
       shopId: id,
-      name: name.replace(/[🧸🐚🛋️🌳🥣🌀🐱🐾🌸🪵🌌📦🏰]/g, "").trim(),
+      name: name.replace(/[🧸🐚🛋️🌳🥣🌀🐱🐾🌸🪵🌌📦🏰🐠]/g, "").trim(),
       x: 25 + Math.random() * 50,
       y: 45 + Math.random() * 20,
       isSleeping: false,
@@ -172,20 +192,33 @@ export function DecorationsTab({
     const updated = [...placedItems, newItem];
     savePlacedItemsToRoom(updated);
 
-    const emoji = id === "cushion" ? "🛋️" : id === "golden_fish" ? "🥣" : id === "tunnel" ? "📦" : "🏰";
+    const emoji = id === "cushion" ? "🛋️" : id === "golden_fish" ? "🥣" : id === "tunnel" ? "📦" : id === "luxury_tower" ? "🏰" : id === "cat_tree" ? "🌳" : "🐠";
     setBoughtItemMessage({ name, emoji });
 
     SOUNDS.playSuccessColor();
   };
 
   // Direct Purchase Rug
-  const handleBuyRug = (id: string, price: number) => {
-    if (yarnCount < price) {
-      SOUNDS.playError();
+  const handleBuyRug = (id: string, price?: number, crystalPrice?: number) => {
+    if (crystalPrice !== undefined) {
+      if (goldYarnCount < crystalPrice) {
+        SOUNDS.playError();
+        alert("Недостаточно кристаллов! 💎");
+        return;
+      }
+      const nextCrystals = goldYarnCount - crystalPrice;
+      updateGoldYarn(nextCrystals);
+    } else if (price !== undefined) {
+      if (yarnCount < price) {
+        SOUNDS.playError();
+        alert("Недостаточно мотков пряжи! 🧶");
+        return;
+      }
+      const nextYarn = yarnCount - price;
+      updateYarn(nextYarn);
+    } else {
       return;
     }
-    const nextYarn = yarnCount - price;
-    updateYarn(nextYarn);
 
     const nextPurchased = [...purchasedRugs, id];
     setPurchasedRugs(nextPurchased);
@@ -198,13 +231,26 @@ export function DecorationsTab({
   };
 
   // Direct Purchase Wallpaper
-  const handleBuyWallpaper = (id: string, price: number) => {
-    if (yarnCount < price) {
-      SOUNDS.playError();
+  const handleBuyWallpaper = (id: string, price?: number, crystalPrice?: number) => {
+    if (crystalPrice !== undefined) {
+      if (goldYarnCount < crystalPrice) {
+        SOUNDS.playError();
+        alert("Недостаточно кристаллов! 💎");
+        return;
+      }
+      const nextCrystals = goldYarnCount - crystalPrice;
+      updateGoldYarn(nextCrystals);
+    } else if (price !== undefined) {
+      if (yarnCount < price) {
+        SOUNDS.playError();
+        alert("Недостаточно мотков пряжи! 🧶");
+        return;
+      }
+      const nextYarn = yarnCount - price;
+      updateYarn(nextYarn);
+    } else {
       return;
     }
-    const nextYarn = yarnCount - price;
-    updateYarn(nextYarn);
 
     const nextPurchased = [...purchasedWallpapers, id];
     setPurchasedWallpapers(nextPurchased);
@@ -243,6 +289,16 @@ export function DecorationsTab({
           <h2 className="text-sm font-pixel text-rose-700 uppercase tracking-wide">
             Уютные Украшения 🛋️
           </h2>
+        </div>
+        <div className="flex items-center gap-2 font-pixel">
+          <div className="bg-white/80 border border-rose-100/50 rounded-full py-1 px-2.5 text-[8.5px] font-bold text-amber-600 shadow-3xs flex items-center gap-1 shrink-0">
+            <span>🧶</span>
+            <span>{yarnCount}</span>
+          </div>
+          <div className="bg-white/80 border border-rose-100/50 rounded-full py-1 px-2.5 text-[8.5px] font-bold text-rose-500 shadow-3xs flex items-center gap-1 shrink-0">
+            <span>💎</span>
+            <span>{goldYarnCount}</span>
+          </div>
         </div>
       </div>
 
@@ -381,8 +437,8 @@ export function DecorationsTab({
                     className="bg-white rounded-2xl p-3.5 border border-rose-100 flex items-center gap-3.5 shadow-xs"
                   >
                     {/* Visual icon badge placeholder */}
-                    <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center text-4xl shadow-inner shrink-0 border border-rose-100">
-                      {item.id === "cushion" ? "🛋️" : item.id === "golden_fish" ? "🥣" : item.id === "tunnel" ? "📦" : "🏰"}
+                    <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center text-4.5xl shadow-inner shrink-0 border border-rose-100">
+                      {item.id === "cushion" ? "🛋️" : item.id === "golden_fish" ? "🥣" : item.id === "tunnel" ? "📦" : item.id === "luxury_tower" ? "🏰" : item.id === "cat_tree" ? "🌳" : "🐠"}
                     </div>
 
                     {/* Metadata controls details */}
@@ -392,8 +448,8 @@ export function DecorationsTab({
                           {item.name}
                         </h4>
                         {!isBought && (
-                          <span className="text-[10px] font-pixel text-amber-600 font-extrabold shrink-0">
-                            🧶 {item.price}
+                          <span className={`text-[10px] font-pixel font-extrabold shrink-0 ${item.crystalPrice !== undefined ? "text-cyan-600" : "text-amber-600"}`}>
+                            {item.crystalPrice !== undefined ? `💎 ${item.crystalPrice}` : `🧶 ${item.price}`}
                           </span>
                         )}
                       </div>
@@ -415,10 +471,14 @@ export function DecorationsTab({
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleBuyShopItem(item.id, item.name, item.price)}
-                            className="flex-1 text-center bg-amber-400 hover:bg-amber-300 border border-amber-500 text-slate-950 py-1.5 rounded-xl text-[9px] font-pixel font-extrabold cursor-pointer transition-all shadow-xs"
+                            onClick={() => handleBuyShopItem(item.id, item.name, item.price, item.crystalPrice)}
+                            className={`flex-1 text-center py-1.5 rounded-xl text-[9px] font-pixel font-extrabold cursor-pointer transition-all border shadow-xs ${
+                              item.crystalPrice !== undefined
+                                ? "bg-cyan-400 hover:bg-cyan-300 border-cyan-500 text-slate-950"
+                                : "bg-amber-400 hover:bg-amber-300 border-amber-500 text-slate-950"
+                            }`}
                           >
-                            Купить за {item.price} 🧶
+                            Купить за {item.crystalPrice !== undefined ? `${item.crystalPrice} 💎` : `${item.price} 🧶`}
                           </button>
                         )}
                       </div>
@@ -442,7 +502,8 @@ export function DecorationsTab({
 
               <div className="grid grid-cols-2 gap-2.5">
                 {RUG_THEMES.map((theme) => {
-                  const isBought = theme.price === 0 || purchasedRugs.includes(theme.id);
+                  const hasPrice = theme.price !== undefined;
+                  const isBought = (!hasPrice && theme.crystalPrice === undefined) || (hasPrice && theme.price === 0) || purchasedRugs.includes(theme.id);
                   const isEquipped = equippedRug === theme.id;
 
                   return (
@@ -470,10 +531,14 @@ export function DecorationsTab({
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleBuyRug(theme.id, theme.price)}
-                            className="bg-amber-400 hover:bg-amber-300 text-slate-950 w-full text-[8px] font-pixel py-1.5 rounded-md cursor-pointer font-extrabold shadow-xs"
+                            onClick={() => handleBuyRug(theme.id, theme.price, theme.crystalPrice)}
+                            className={`w-full text-[8px] font-pixel py-1.5 rounded-md cursor-pointer font-extrabold shadow-xs ${
+                              theme.crystalPrice !== undefined
+                                ? "bg-cyan-400 hover:bg-cyan-300 text-slate-950"
+                                : "bg-amber-400 hover:bg-amber-300 text-slate-950"
+                            }`}
                           >
-                            {theme.price} 🧶
+                            {theme.crystalPrice !== undefined ? `${theme.crystalPrice} 💎` : `${theme.price} 🧶`}
                           </button>
                         )}
                       </div>
@@ -491,7 +556,8 @@ export function DecorationsTab({
 
               <div className="grid grid-cols-2 gap-2.5">
                 {WALLPAPER_THEMES.map((wall) => {
-                  const isBought = wall.price === 0 || purchasedWallpapers.includes(wall.id);
+                  const hasPrice = wall.price !== undefined;
+                  const isBought = (!hasPrice && wall.crystalPrice === undefined) || (hasPrice && wall.price === 0) || purchasedWallpapers.includes(wall.id);
                   const isEquipped = equippedWallpaper === wall.id;
 
                   return (
@@ -512,6 +578,9 @@ export function DecorationsTab({
                         {wall.id === "sakura" && (
                           <div className="absolute inset-0 flex items-center justify-center text-[10px]">🌸</div>
                         )}
+                        {wall.id === "neon_wallpaper" && (
+                          <div className="absolute inset-0 flex items-center justify-center text-[10px]">👾</div>
+                        )}
                       </div>
                       
                       <span className="text-[10px] font-bold text-slate-700 block line-clamp-1">{wall.name}</span>
@@ -530,10 +599,14 @@ export function DecorationsTab({
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleBuyWallpaper(wall.id, wall.price)}
-                            className="bg-amber-400 hover:bg-amber-300 text-slate-950 w-full text-[8px] font-pixel py-1.5 rounded-md cursor-pointer font-extrabold shadow-xs"
+                            onClick={() => handleBuyWallpaper(wall.id, wall.price, wall.crystalPrice)}
+                            className={`w-full text-[8px] font-pixel py-1.5 rounded-md cursor-pointer font-extrabold shadow-xs ${
+                              wall.crystalPrice !== undefined
+                                ? "bg-cyan-400 hover:bg-cyan-300 text-slate-950"
+                                : "bg-amber-400 hover:bg-amber-300 text-slate-950"
+                            }`}
                           >
-                            {wall.price} 🧶
+                            {wall.crystalPrice !== undefined ? `${wall.crystalPrice} 💎` : `${wall.price} 🧶`}
                           </button>
                         )}
                       </div>

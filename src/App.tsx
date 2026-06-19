@@ -792,6 +792,8 @@ export default function App() {
                 <DecorationsTab
                   yarnCount={yarnCount}
                   updateYarn={updateYarn}
+                  goldYarnCount={goldYarnCount}
+                  updateGoldYarn={updateGoldYarn}
                   completedPuzzles={completedPuzzles}
                   puzzleTemplates={allAvailablePuzzles}
                   onSelectPuzzle={(p) => {
