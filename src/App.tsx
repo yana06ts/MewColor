@@ -3,6 +3,7 @@ import { PUZZLE_TEMPLATES, createInitialProgress, PuzzleTemplate, CellProgress }
 import { PixelGrid } from "./components/PixelGrid";
 import { CatRoom } from "./components/CatRoom";
 import { DecorationsTab } from "./components/DecorationsTab";
+import { GachaTab } from "./components/GachaTab";
 import SOUNDS from "./utils/sound";
 import {
   Sparkles,
@@ -25,7 +26,9 @@ import {
   Grid,
   MapPin,
   Pencil,
-  Settings
+  Settings,
+  Trophy,
+  Ticket
 } from "lucide-react";
 
 export default function App() {
@@ -36,8 +39,16 @@ export default function App() {
   const [powerups, setPowerups] = useState({ wand: 3, bomb: 3, magnifier: 3 });
   const [customPuzzles, setCustomPuzzles] = useState<PuzzleTemplate[]>([]);
 
+  // Premium progress/reward states
+  const [goldYarnCount, setGoldYarnCount] = useState<number>(10);
+  const [gachaTickets, setGachaTickets] = useState<number>(2);
+  const [catLevels, setCatLevels] = useState<Record<string, number>>({});
+  const [equippedSkins, setEquippedSkins] = useState<Record<string, string>>({});
+  const [unlockedSkins, setUnlockedSkins] = useState<string[]>([]);
+  const [claimedAchievements, setClaimedAchievements] = useState<string[]>([]);
+
   // 2. Navigation states
-  const [activeTab, setActiveTab] = useState<"puzzles" | "room" | "decorations">("puzzles");
+  const [activeTab, setActiveTab] = useState<"puzzles" | "room" | "decorations" | "gacha">("puzzles");
   const [selectedPuzzle, setSelectedPuzzle] = useState<PuzzleTemplate | null>(null);
   const [currentProgress, setCurrentProgress] = useState<CellProgress[]>([]);
   const [selectedColorNumber, setSelectedColorNumber] = useState<number>(1);
@@ -48,6 +59,7 @@ export default function App() {
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [showTutorial, setShowTutorial] = useState<boolean>(false);
   const [showShopModal, setShowShopModal] = useState<boolean>(false);
+  const [showAchievementsModal, setShowAchievementsModal] = useState<boolean>(false);
   const [levelCompleteModal, setLevelCompleteModal] = useState<{ active: boolean; yarnEarned: number } | null>(null);
   const [showPromoWidget, setShowPromoWidget] = useState<boolean>(() => localStorage.getItem("meowcolor_show_promo") !== "false");
 
@@ -102,6 +114,45 @@ export default function App() {
       }
     }
 
+    // Load premium states
+    const savedGold = localStorage.getItem("meowcolor_gold_yarn");
+    if (savedGold) {
+      setGoldYarnCount(parseInt(savedGold, 10));
+    }
+
+    const savedTickets = localStorage.getItem("meowcolor_gacha_tickets");
+    if (savedTickets) {
+      setGachaTickets(parseInt(savedTickets, 10));
+    }
+
+    const savedLevels = localStorage.getItem("meowcolor_cat_levels");
+    if (savedLevels) {
+      try {
+        setCatLevels(JSON.parse(savedLevels));
+      } catch (e) {}
+    }
+
+    const savedSkins = localStorage.getItem("meowcolor_equipped_skins");
+    if (savedSkins) {
+      try {
+        setEquippedSkins(JSON.parse(savedSkins));
+      } catch (e) {}
+    }
+
+    const savedUnlockedSkins = localStorage.getItem("meowcolor_unlocked_skins");
+    if (savedUnlockedSkins) {
+      try {
+        setUnlockedSkins(JSON.parse(savedUnlockedSkins));
+      } catch (e) {}
+    }
+
+    const savedClaimedAchievements = localStorage.getItem("meowcolor_claimed_achievements");
+    if (savedClaimedAchievements) {
+      try {
+        setClaimedAchievements(JSON.parse(savedClaimedAchievements));
+      } catch (e) {}
+    }
+
     // Sound prefer
     const savedSound = localStorage.getItem("meowcolor_sound_on");
     if (savedSound !== null) {
@@ -115,6 +166,36 @@ export default function App() {
   const updateYarn = (newVal: number) => {
     setYarnCount(newVal);
     localStorage.setItem("meowcolor_yarn", newVal.toString());
+  };
+
+  const updateGoldYarn = (newVal: number) => {
+    setGoldYarnCount(newVal);
+    localStorage.setItem("meowcolor_gold_yarn", newVal.toString());
+  };
+
+  const updateGachaTickets = (newVal: number) => {
+    setGachaTickets(newVal);
+    localStorage.setItem("meowcolor_gacha_tickets", newVal.toString());
+  };
+
+  const updateCatLevels = (newVal: Record<string, number>) => {
+    setCatLevels(newVal);
+    localStorage.setItem("meowcolor_cat_levels", JSON.stringify(newVal));
+  };
+
+  const updateEquippedSkins = (newVal: Record<string, string>) => {
+    setEquippedSkins(newVal);
+    localStorage.setItem("meowcolor_equipped_skins", JSON.stringify(newVal));
+  };
+
+  const updateUnlockedSkins = (newVal: string[]) => {
+    setUnlockedSkins(newVal);
+    localStorage.setItem("meowcolor_unlocked_skins", JSON.stringify(newVal));
+  };
+
+  const updateClaimedAchievements = (newVal: string[]) => {
+    setClaimedAchievements(newVal);
+    localStorage.setItem("meowcolor_claimed_achievements", JSON.stringify(newVal));
   };
 
   const updatePowerupsVal = (newPowerups: typeof powerups) => {
@@ -210,9 +291,10 @@ export default function App() {
         }
       }
 
-      // Add yarn rewards
-      const reward = selectedPuzzle!.yarnReward;
-      updateYarn(yarnCount + (isFirstTime ? reward : Math.floor(reward * 0.2)));
+      // Add yarn rewards (rebalanced! First-time reward is reduced to about 35%, and repeat is reduced to 8% to match user requests!)
+      const originalReward = selectedPuzzle!.yarnReward;
+      const finalReward = isFirstTime ? Math.max(10, Math.floor(originalReward * 0.35)) : Math.max(2, Math.floor(originalReward * 0.08));
+      updateYarn(yarnCount + finalReward);
 
       // Clear partial progress state storage
       localStorage.removeItem(`meowcolor_progress_${puzzleId}`);
@@ -225,7 +307,7 @@ export default function App() {
       // Open reward visual dialog
       setLevelCompleteModal({
         active: true,
-        yarnEarned: isFirstTime ? reward : Math.floor(reward * 0.2),
+        yarnEarned: finalReward,
       });
     }
   };
@@ -368,7 +450,20 @@ export default function App() {
             </div>
 
             {/* Yarn Stash and Stats & Store link */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 select-none">
+              {/* Achievements Trophy Toggle */}
+              <button
+                id="header-achievements-btn"
+                onClick={() => {
+                  setShowAchievementsModal(true);
+                  SOUNDS.playPop(1.1);
+                }}
+                className="p-1 px-1.5 bg-rose-500 hover:bg-rose-600 border border-rose-300/40 text-yellow-300 rounded-lg transition-colors cursor-pointer flex items-center justify-center scale-90"
+                title="Достижения 🏆"
+              >
+                <Trophy className="w-3.5 h-3.5" />
+              </button>
+
               {/* Settings Toggle */}
               <button
                 id="header-settings-btn"
@@ -376,24 +471,34 @@ export default function App() {
                   setShowSettingsModal(true);
                   SOUNDS.playPop(1.1);
                 }}
-                className="p-1 px-1.5 hover:bg-rose-500 text-rose-100 rounded-lg transition-colors cursor-pointer flex items-center justify-center"
+                className="p-1 px-1.5 hover:bg-rose-500 text-rose-100 rounded-lg transition-colors cursor-pointer flex items-center justify-center scale-90"
                 title="Настройки ⚙️"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-3.5 h-3.5" />
               </button>
 
-              {/* Yarn score bubble */}
+              {/* Regular Yarn score bubble */}
               <button
                 id="header-shop-trigger"
                 onClick={() => {
                   setShowShopModal(true);
                   SOUNDS.playPop(1.1);
                 }}
-                className="flex items-center gap-1 bg-amber-400 border border-amber-500 px-2.5 py-1 rounded-full text-xs font-pixel shadow-xs hover:bg-amber-300 scale-90 duration-150 cursor-pointer text-slate-950"
+                className="flex items-center gap-0.5 bg-amber-400 border border-amber-500 px-2 py-0.5 rounded-full text-[10px] font-pixel shadow-xs hover:bg-amber-300 scale-90 duration-155 cursor-pointer text-slate-950 font-bold"
+                title="Магазин красок 🧶"
               >
                 <span>🧶</span>
                 <span>{yarnCount}</span>
               </button>
+
+              {/* Gold Yarn bubble display */}
+              <div
+                className="flex items-center gap-0.5 bg-gradient-to-r from-amber-500 to-amber-400 border border-amber-350 px-2 py-0.5 rounded-full text-[10px] font-pixel shadow-xs scale-90 text-slate-950 font-bold"
+                title="Золотая пряжа 🌟"
+              >
+                <span>🌟</span>
+                <span>{goldYarnCount}</span>
+              </div>
             </div>
           </div>
         </header>
@@ -645,7 +750,22 @@ export default function App() {
             {/* Tap Lobby 2: Interactive cat room decors */}
             {activeTab === "room" && (
               <div className="flex-1 overflow-hidden">
-                <CatRoom completedPuzzles={completedPuzzles} puzzleTemplates={allAvailablePuzzles} />
+                <CatRoom
+                  completedPuzzles={completedPuzzles}
+                  puzzleTemplates={allAvailablePuzzles}
+                  yarnCount={yarnCount}
+                  updateYarn={updateYarn}
+                  goldYarnCount={goldYarnCount}
+                  updateGoldYarn={updateGoldYarn}
+                  gachaTickets={gachaTickets}
+                  updateGachaTickets={updateGachaTickets}
+                  catLevels={catLevels}
+                  updateCatLevels={updateCatLevels}
+                  equippedSkins={equippedSkins}
+                  updateEquippedSkins={updateEquippedSkins}
+                  unlockedSkins={unlockedSkins}
+                  updateUnlockedSkins={updateUnlockedSkins}
+                />
               </div>
             )}
 
@@ -663,6 +783,25 @@ export default function App() {
                 />
               </div>
             )}
+
+            {/* Tap Lobby 4: Magic Lucky Cardboard Box Gacha Machine */}
+            {activeTab === "gacha" && (
+              <div className="flex-1 overflow-hidden animate-fade-in">
+                <GachaTab
+                  yarnCount={yarnCount}
+                  updateYarn={updateYarn}
+                  goldYarnCount={goldYarnCount}
+                  updateGoldYarn={updateGoldYarn}
+                  gachaTickets={gachaTickets}
+                  updateGachaTickets={updateGachaTickets}
+                  catLevels={catLevels}
+                  updateCatLevels={updateCatLevels}
+                  puzzleTemplates={allAvailablePuzzles}
+                  completedPuzzles={completedPuzzles}
+                  setCompletedPuzzles={setCompletedPuzzles}
+                />
+              </div>
+            )}
             
           </div>
         </main>
@@ -670,10 +809,11 @@ export default function App() {
         {/* 3. COZY FOOTER NAV BAR */}
         {!selectedPuzzle && (
           <footer className="bg-white border-t border-rose-100/60 p-2 py-2.5 shrink-0 select-none z-10 px-4">
-            <div className="grid grid-cols-3 gap-2 max-w-md mx-auto w-full">
+            <div className="grid grid-cols-4 gap-1.5 max-w-md mx-auto w-full">
               
               {([
                 { key: "puzzles", name: "Раскраски", icon: "🎨" },
+                { key: "gacha", name: "Автомат", icon: "🎁" },
                 { key: "decorations", name: "Украшения", icon: "🛋️" },
                 { key: "room", name: "Кото-Дом", icon: "🐈" },
               ] as const).map((tab) => {
@@ -688,12 +828,12 @@ export default function App() {
                     }}
                     className={`flex flex-col items-center justify-center p-1 w-full rounded-xl transition-all relative cursor-pointer ${
                       isCurrent
-                        ? "text-rose-500 bg-rose-50/70 scale-105 font-bold"
+                        ? "text-rose-500 bg-rose-50/70 scale-102 font-bold"
                         : "text-slate-500 hover:text-rose-400 hover:bg-rose-50/20"
                     }`}
                   >
-                    <span className="text-lg leading-normal mb-0.5">{tab.icon}</span>
-                    <span className="text-[10px] font-pixel tracking-tighter opacity-90">
+                    <span className="text-base leading-normal mb-0.5">{tab.icon}</span>
+                    <span className="text-[9px] font-pixel tracking-tighter opacity-90">
                       {tab.name}
                     </span>
                     {/* Active small dot indicator */}
@@ -1029,6 +1169,181 @@ export default function App() {
                 className="w-full mt-4 bg-rose-400 text-white font-pixel text-xs p-3 rounded-2xl hover:bg-rose-500 shadow-sm transition-colors cursor-pointer uppercase font-bold"
               >
                 ГОТОВО! 🐾
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Achievements Modal Popup Dialog (Earn Gold Yarn by completing milestones!) */}
+        {showAchievementsModal && (
+          <div className="absolute inset-0 z-50 bg-[#00000075] backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-amber-300 max-w-sm w-full relative select-none animate-fade-in flex flex-col max-h-[82%]">
+              
+              {/* Close Button */}
+              <button
+                id="achievements-close-btn"
+                onClick={() => {
+                  setShowAchievementsModal(false);
+                  SOUNDS.playPop(0.9);
+                }}
+                className="absolute top-4 right-4 text-xs font-pixel text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                ✕
+              </button>
+
+              <div className="flex items-center gap-2 border-b border-rose-100 pb-3 mb-4 shrink-0 col-span-2">
+                <Trophy className="w-5 h-5 text-amber-500 animate-bounce" />
+                <h3 className="text-xs font-pixel text-slate-800 uppercase tracking-tight">
+                  Кошачьи Достижения 🏆
+                </h3>
+              </div>
+
+              {/* Achievements scrollable list */}
+              <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-3 pb-3">
+                {([
+                  {
+                    id: "first_cat",
+                    title: "Первый Мурка 🐱",
+                    desc: "Раскрась хотя бы одного котика по номерам в галерее.",
+                    gYarnReward: 5,
+                    check: () => {
+                      return completedPuzzles.some(pId => {
+                        const templ = allAvailablePuzzles.find(t => t.id === pId);
+                        return templ && templ.category === "cats";
+                      });
+                    }
+                  },
+                  {
+                    id: "first_plant",
+                    title: "Комнатный Ботаник 🌱",
+                    desc: "Раскрась хотя бы одно комнатное растение в галерее.",
+                    gYarnReward: 5,
+                    check: () => {
+                      return completedPuzzles.some(pId => {
+                        const templ = allAvailablePuzzles.find(t => t.id === pId);
+                        return templ && templ.category === "plants & buds";
+                      });
+                    }
+                  },
+                  {
+                    id: "first_toy",
+                    title: "Коробка Игрушек 🧸",
+                    desc: "Раскрась хотя бы одну любимую игрушку пушистых.",
+                    gYarnReward: 5,
+                    check: () => {
+                      return completedPuzzles.some(pId => {
+                        const templ = allAvailablePuzzles.find(t => t.id === pId);
+                        return templ && templ.category === "toys";
+                      });
+                    }
+                  },
+                  {
+                    id: "cat_level_2",
+                    title: "Заботливый Опекун ⭐",
+                    desc: "Прокачай любого котика до 2-го уровня или выше.",
+                    gYarnReward: 8,
+                    check: () => {
+                      return Object.values(catLevels).some(lvl => (lvl as number) >= 2);
+                    }
+                  },
+                  {
+                    id: "cat_level_5",
+                    title: "Кошачий Владыка 👑",
+                    desc: "Достигни максимального 5-го уровня на любом котике.",
+                    gYarnReward: 15,
+                    check: () => {
+                      return Object.values(catLevels).some(lvl => (lvl as number) >= 5);
+                    }
+                  },
+                  {
+                    id: "furniture_buy",
+                    title: "Уютный Дизайнер 🛋️",
+                    desc: "Поставь мебель или игрушку в Кошачий Кото-Дом.",
+                    gYarnReward: 8,
+                    check: () => {
+                      const placedCatsVal = localStorage.getItem("meowcolor_placed_cats");
+                      if (placedCatsVal) {
+                        try {
+                          const parsed = JSON.parse(placedCatsVal);
+                          return parsed.some((item: any) => item.shopId || (item.puzzleId && item.puzzleId.startsWith("toy_")));
+                        } catch (e) {}
+                      }
+                      return false;
+                    }
+                  },
+                  {
+                    id: "high_yarn",
+                    title: "Зажиточный Клубок 🧶",
+                    desc: "Накопи 1000 или более обычной пряжи одновременно.",
+                    gYarnReward: 10,
+                    check: () => yarnCount >= 1000
+                  }
+                ]).map((acc) => {
+                  const isCompleted = acc.check();
+                  const isClaimed = claimedAchievements.includes(acc.id);
+
+                  return (
+                    <div
+                      key={acc.id}
+                      className={`p-3 rounded-2xl border flex flex-col justify-between gap-2.5 transition-all ${
+                        isClaimed
+                          ? "bg-slate-50 border-slate-200 opacity-65 font-medium"
+                          : isCompleted
+                          ? "bg-amber-500/5 border-amber-300 shadow-xs"
+                          : "bg-white border-slate-100"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start gap-1">
+                        <div>
+                          <h4 className="text-[11px] font-bold text-slate-800 leading-tight uppercase font-pixel tracking-tight">
+                            {acc.title}
+                          </h4>
+                          <p className="text-[9px] text-slate-500 leading-normal mt-0.5 font-semibold">
+                            {acc.desc}
+                          </p>
+                        </div>
+                        <span className="text-[9px] font-pixel bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
+                          +{acc.gYarnReward} 🌟
+                        </span>
+                      </div>
+
+                      <div className="w-full">
+                        {isClaimed ? (
+                          <span className="text-[8px] font-pixel text-slate-400 flex items-center justify-center gap-0.5 font-bold uppercase">
+                            ✓ НАГРАДА ПОЛУЧЕНА
+                          </span>
+                        ) : isCompleted ? (
+                          <button
+                            onClick={() => {
+                              updateGoldYarn(goldYarnCount + acc.gYarnReward);
+                              updateClaimedAchievements([...claimedAchievements, acc.id]);
+                              SOUNDS.playSuccessColor();
+                            }}
+                            className="w-full text-center bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-1 rounded-lg text-[8px] font-pixel cursor-pointer tracking-wider animate-bounce uppercase shadow-xs duration-150"
+                          >
+                            Забрать Награду! 🌟
+                          </button>
+                        ) : (
+                          <span className="text-[8px] font-pixel text-slate-400 flex items-center justify-center gap-0.5 font-bold uppercase">
+                            🔒 В ПРОЦЕССЕ ВЫПОЛНЕНИЯ
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Close pin */}
+              <button
+                id="achievements-close-bottom-btn"
+                onClick={() => {
+                  setShowAchievementsModal(false);
+                  SOUNDS.playPop(1.1);
+                }}
+                className="w-full shrink-0 mt-2 bg-amber-500 text-slate-950 font-pixel text-xs p-2.5 rounded-2xl hover:bg-amber-400 shadow-sm transition-colors cursor-pointer uppercase font-bold text-center"
+              >
+                Закрыть 🐾
               </button>
             </div>
           </div>

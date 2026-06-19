@@ -2,11 +2,41 @@ import React, { useState, useEffect, useRef } from "react";
 import { PuzzleTemplate } from "../data/puzzles";
 import SOUNDS from "../utils/sound";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, Sun, Moon, Flame, Palette, Volume2, Cat, Smile, HelpCircle, Heart } from "lucide-react";
+import { Sparkles, Sun, Moon, Flame, Palette, Volume2, Cat, Smile, HelpCircle, Heart, Star, Sparkle, ShoppingBag } from "lucide-react";
+
+// Favorite toys mapping for cute synergies
+export const CAT_FAVORITE_TOYS: Record<string, { id: string; name: string; emoji: string }> = {
+  siamese_cat: { id: "toy_yarn_ball", name: "Качественный Клубок", emoji: "🧶" },
+  ginger_munchkin: { id: "toy_feather", name: "Удочка-дразнилка", emoji: "🪶" },
+  royal_white_cat: { id: "toy_fish", name: "Рыбка с мятой", emoji: "🐟" },
+  calico_cat: { id: "squeaky_mouse", name: "Игрушка-Мышка", emoji: "🐭" },
+  box_cat: { id: "toy_scratch", name: "Кошачья когтеточка", emoji: "🪵" },
+  samurai_cat: { id: "toy_fish", name: "Рыбка с мятой", emoji: "🐟" },
+};
+
+// Cute buyable skins for golden yarn
+export const AVAILABLE_SKINS = [
+  { id: "crown", name: "Корона Кошачьего Лорда", emoji: "👑", price: 6, desc: "+100% к пассивной пряже!" },
+  { id: "wizard", name: "Шляпа Кото-Мага", emoji: "🧙‍♂️", price: 5, desc: "+100% к пассивной пряже!" },
+  { id: "samurai", name: "Шлем Мяу-Самурая", emoji: "⚔️", price: 6, desc: "+100% к пассивной пряже!" },
+  { id: "bow", name: "Принцессный Розовый Бантик", emoji: "🎀", price: 3, desc: "+100% к пассивной пряже!" },
+];
 
 interface CatRoomProps {
   completedPuzzles: string[]; // ids of completed puzzles
   puzzleTemplates: PuzzleTemplate[];
+  yarnCount: number;
+  updateYarn: (newCount: number) => void;
+  goldYarnCount: number;
+  updateGoldYarn: (newCount: number) => void;
+  gachaTickets: number;
+  updateGachaTickets: (newCount: number) => void;
+  catLevels: Record<string, number>;
+  updateCatLevels: (levels: Record<string, number>) => void;
+  equippedSkins: Record<string, string>;
+  updateEquippedSkins: (skins: Record<string, string>) => void;
+  unlockedSkins: string[];
+  updateUnlockedSkins: (skins: string[]) => void;
 }
 
 interface PlacedCat {
@@ -35,7 +65,22 @@ const CAT_MEOWS_TEXT = [
   "Мякиш! 🥯",
 ];
 
-export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
+export function CatRoom({
+  completedPuzzles,
+  puzzleTemplates,
+  yarnCount,
+  updateYarn,
+  goldYarnCount,
+  updateGoldYarn,
+  gachaTickets,
+  updateGachaTickets,
+  catLevels,
+  updateCatLevels,
+  equippedSkins,
+  updateEquippedSkins,
+  unlockedSkins,
+  updateUnlockedSkins,
+}: CatRoomProps) {
   const roomRef = useRef<HTMLDivElement>(null);
   
   // Try to load placed objects from local storage, or spawn first completed cat by default
@@ -50,6 +95,98 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
   
   const [activeSpeech, setActiveSpeech] = useState<{ [id: string]: string }>({});
   const [activeHeart, setActiveHeart] = useState<{ [id: string]: boolean }>({});
+
+  // Passive income collection states
+  const [accruedYarn, setAccruedYarn] = useState<number>(0);
+  const [accruedTickets, setAccruedTickets] = useState<number>(0);
+  const [lastClaimTime, setLastClaimTime] = useState<number>(() => {
+    const saved = localStorage.getItem("meowcolor_last_claim");
+    return saved ? parseInt(saved, 10) : Date.now();
+  });
+
+  // Modal detail card state
+  const [selectedDetailCat, setSelectedDetailCat] = useState<PlacedCat | null>(null);
+
+  // Dynamic calculations for total passive income rate (yarn per second)
+  const currentRate = React.useMemo(() => {
+    let rate = 0;
+    
+    // Filter down to draggable cats currently placed in the room
+    const placedCatsFiltered = placedCats.filter((cat) => {
+      const template = cat.puzzleId ? puzzleTemplates.find(p => p.id === cat.puzzleId) : null;
+      return !cat.shopId && (!template || template.category === "cats");
+    });
+
+    placedCatsFiltered.forEach((cat) => {
+      if (!cat.puzzleId) return;
+
+      const level = catLevels[cat.puzzleId] || 1;
+      const baseYield = 0.05; // 0.05 yarn per second per cat = 3 yarn/minute base
+
+      // Level multiplier: Lvl 1 = 1.0, Lvl 2 = 1.25, Lvl 3 = 1.5, etc.
+      const lvlMult = 1 + (level - 1) * 0.25;
+
+      // Toy Synergy check: check if fav toy is also placed in the room
+      const favToy = CAT_FAVORITE_TOYS[cat.puzzleId];
+      const hasSynergy = favToy && placedCats.some((item) => item.puzzleId === favToy.id);
+      const synergyAdd = hasSynergy ? 0.5 : 0; // +50% bonus yield
+
+      // Skin check: +100% bonus yield if wearing any accessory / hat skin
+      const hasSkin = !!equippedSkins[cat.puzzleId];
+      const skinAdd = hasSkin ? 1.0 : 0; // +100% bonus yield
+
+      rate += baseYield * (lvlMult + synergyAdd + skinAdd);
+    });
+
+    // Shop item furniture multipliers (applied globally to total cat production rate!)
+    let furnitureMult = 1.0;
+    const placedShopIds = placedCats.filter(item => item.shopId).map(item => item.shopId);
+
+    if (placedShopIds.includes("cushion")) furnitureMult += 0.25; // Sofa gives +25%
+    if (placedShopIds.includes("golden_fish")) furnitureMult += 0.15; // Bowl gives +15%
+    if (placedShopIds.includes("tunnel")) furnitureMult += 0.15; // Box gives +15%
+    if (placedShopIds.includes("luxury_tower")) furnitureMult += 0.45; // Tower gives +45%
+
+    return rate * furnitureMult;
+  }, [placedCats, catLevels, equippedSkins, puzzleTemplates]);
+
+  // live timer to accumulate passive yarn / tickets
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - lastClaimTime) / 1000);
+      const elapsedConstrained = Math.min(elapsed, 43200); // 12 Hours Cap
+
+      const rawAccumulated = elapsedConstrained * currentRate;
+      const calculatedYarn = Math.floor(rawAccumulated);
+      
+      // Award 1 free spin ticket for every 200 regular yarn generated
+      const calculatedTickets = Math.floor(calculatedYarn / 200);
+      
+      setAccruedYarn(calculatedYarn);
+      setAccruedTickets(calculatedTickets);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [lastClaimTime, currentRate]);
+
+  // Claim click handler
+  const handleClaimIncome = () => {
+    if (accruedYarn <= 0 && accruedTickets <= 0) {
+      SOUNDS.playError();
+      return;
+    }
+
+    updateYarn(yarnCount + accruedYarn);
+    updateGachaTickets(gachaTickets + accruedTickets);
+    SOUNDS.playCompleteLevel();
+
+    const now = Date.now();
+    setLastClaimTime(now);
+    localStorage.setItem("meowcolor_last_claim", now.toString());
+
+    setAccruedYarn(0);
+    setAccruedTickets(0);
+  };
 
   const placedCatsRef = useRef<PlacedCat[]>([]);
   useEffect(() => {
@@ -203,13 +340,16 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
       setActiveHeart((prev) => ({ ...prev, [cat.id]: false }));
     }, 1200);
 
+    // Set selected detail cat modal!
+    setSelectedDetailCat(cat);
+
     // Randomize sleeping/flipping state slightly on click
     const updated = placedCats.map((c) => {
       if (c.id === cat.id) {
         return {
           ...c,
           flipped: !c.flipped,
-          isSleeping: Math.random() > 0.75 ? !c.isSleeping : c.isSleeping,
+          isSleeping: Math.random() > 0.85 ? !c.isSleeping : c.isSleeping,
         };
       }
       return c;
@@ -607,6 +747,30 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
           );
         })}
 
+        {/* HARVEST YARN BASKET WIDGET (Accrued income) */}
+        <div className="absolute right-3.5 bottom-3.5 z-40 select-none">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleClaimIncome}
+            className="flex flex-col items-center bg-white/95 p-2 rounded-2xl border border-rose-200 shadow-md cursor-pointer text-center min-w-[90px] relative overflow-hidden"
+          >
+            {/* Accrued totals indicators */}
+            <div className="text-2xl animate-bounce" style={{ animationDuration: accruedYarn > 0 ? "1.5s" : "4s" }}>🧺</div>
+            <div className="flex flex-col leading-tight -mt-1 select-none">
+              <span className="text-[8px] font-pixel text-slate-400 font-bold">СОБРАТЬ:</span>
+              <div className="flex items-center gap-0.5 justify-center mt-0.5">
+                <span className="text-[10px] font-extrabold text-amber-600">🧶 {accruedYarn}</span>
+              </div>
+              {accruedTickets > 0 && (
+                <div className="text-[7.5px] font-pixel text-rose-500 font-extrabold mt-0.5 animate-pulse">
+                  🎟️ +{accruedTickets} билет
+                </div>
+              )}
+            </div>
+          </motion.button>
+        </div>
+
         {/* FLOOR BACKGROUND COLOR */}
         <div
           className={`absolute bottom-0 w-full h-[28%] z-[-1] transition-colors duration-500 ${
@@ -730,6 +894,36 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
                   cat.flipped ? "scale-x-[-1]" : ""
                 } ${cat.isSleeping ? "opacity-90 saturate-75 shadow-inner" : "hover:scale-115"}`}
               >
+                {/* Dynamic equipped hat/costume skin overlay */}
+                {cat.puzzleId && equippedSkins[cat.puzzleId] && (
+                  <div className="absolute -top-4.5 left-4.5 text-xl z-30 pointer-events-none select-none drop-shadow-md animate-bounce" style={{ animationDuration: "3s" }}>
+                    {equippedSkins[cat.puzzleId] === "crown" && "👑"}
+                    {equippedSkins[cat.puzzleId] === "wizard" && "🧙‍♂️"}
+                    {equippedSkins[cat.puzzleId] === "samurai" && "⚔️"}
+                    {equippedSkins[cat.puzzleId] === "bow" && "🎀"}
+                  </div>
+                )}
+
+                {/* Favorite Toy Synergy indicator decoration */}
+                {(() => {
+                  if (!cat.puzzleId) return null;
+                  const favToy = CAT_FAVORITE_TOYS[cat.puzzleId];
+                  const hasSynergy = favToy && placedCats.some((item) => item.puzzleId === favToy.id);
+                  if (!hasSynergy) return null;
+                  return (
+                    <div className="absolute -top-1.5 -left-1.5 text-[10px] text-pink-500 animate-pulse pointer-events-none z-20" title="Синергия активна! 💕">
+                      💖
+                    </div>
+                  );
+                })()}
+
+                {/* Level badge label */}
+                {cat.puzzleId && (
+                  <div className="absolute -bottom-2 -center-x bg-rose-500 text-white min-w-[20px] text-[7.5px] font-pixel px-1 py-0.5 rounded-full border border-rose-300 pointer-events-none z-20 scale-85 text-center shadow-xs">
+                    ★{catLevels[cat.puzzleId] || 1}
+                  </div>
+                )}
+
                 {cat.shopId ? (
                   getShopItemGraphic(cat.shopId)
                 ) : (
@@ -738,7 +932,7 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
 
                 {/* Zzz floating letters if cat is Sleeping */}
                 {cat.isSleeping && (
-                  <div className="absolute -top-2 -right-2 text-[9px] font-pixel text-sky-400 animate-bounce">
+                  <div className="absolute -top-22 -right-2 text-[9px] font-pixel text-sky-400 animate-bounce">
                     Zzz..
                   </div>
                 )}
@@ -796,6 +990,181 @@ export function CatRoom({ completedPuzzles, puzzleTemplates }: CatRoomProps) {
           </div>
         )}
       </div>
+
+      {/* 4. COZY INTERACTIVE CAT DETAILS MODAL (Change Skins / Level stats) */}
+      <AnimatePresence>
+        {selectedDetailCat && (
+          <div className="absolute inset-0 bg-black/40 flex items-end justify-center z-50">
+            {/* Modal backdrop closer click block */}
+            <div className="absolute inset-0" onClick={() => setSelectedDetailCat(null)} />
+            
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25 }}
+              className="bg-white w-full max-w-md rounded-t-[32px] p-5 shadow-2xl relative z-50 flex flex-col gap-4 border-t-2 border-rose-100 text-slate-800"
+            >
+              {/* Close pin */}
+              <button
+                onClick={() => setSelectedDetailCat(null)}
+                className="absolute top-4 right-4 w-7 h-7 bg-slate-100 text-slate-450 font-extrabold rounded-full flex items-center justify-center hover:bg-slate-200 cursor-pointer"
+              >
+                ✕
+              </button>
+
+              {/* Title & Level Header stats */}
+              <div className="flex items-center gap-3.5 pb-2 border-b border-rose-50">
+                <div className="p-2 bg-rose-50 rounded-2xl shrink-0 border border-rose-100">
+                  {getCatPixelIcon(selectedDetailCat.puzzleId || "")}
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-800 uppercase flex items-center gap-1">
+                    {selectedDetailCat.name}
+                    <span className="text-[9px] font-pixel bg-rose-500 text-white px-2 py-0.5 rounded-full ml-1">
+                      ★ Lvl {catLevels[selectedDetailCat.puzzleId || ""] || 1}
+                    </span>
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    {selectedDetailCat.puzzleId === "siamese_cat" ? "Очаровательный породистый котик с тёмной мордочкой" :
+                     selectedDetailCat.puzzleId === "ginger_munchkin" ? "Рыженький пушистик на коротких лапках" :
+                     selectedDetailCat.puzzleId === "royal_white_cat" ? "Пушистая белая принцесса с королевским взглядом" :
+                     selectedDetailCat.puzzleId === "calico_cat" ? "Трёхцветное пятнистое кошачье чудо с пушистым хвостиком" :
+                     selectedDetailCat.puzzleId === "samurai_cat" ? "Сонный ветеран с непревзойдённой кошачьей харизмой" :
+                     "Твой лохматый пиксельный компаньон"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats & Earnings list */}
+              <div className="bg-rose-50/50 rounded-2xl p-3 border border-rose-100 grid grid-cols-2 gap-2 text-xs select-none">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] text-slate-400 font-pixel">АКТИВНАЯ НАГРАДА:</span>
+                  <span className="font-extrabold text-[#9c6644] flex items-center gap-1 font-mono text-xs">
+                    🧶 +{(() => {
+                      const level = catLevels[selectedDetailCat.puzzleId || ""] || 1;
+                      const hasSkin = !!equippedSkins[selectedDetailCat.puzzleId || ""];
+                      const favToy = CAT_FAVORITE_TOYS[selectedDetailCat.puzzleId || ""];
+                      const hasSynergy = favToy && placedCats.some(c => c.puzzleId === favToy.id);
+                      
+                      const base = 0.05;
+                      const lvlMult = 1 + (level - 1) * 0.25;
+                      const synergyAdd = hasSynergy ? 0.5 : 0;
+                      const skinAdd = hasSkin ? 1.0 : 0;
+                      
+                      return (base * (lvlMult + synergyAdd + skinAdd) * 60).toFixed(1);
+                    })()} / мин
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-0.5 border-l border-rose-100/40 pl-3">
+                  <span className="text-[9px] text-slate-400 font-pixel font-bold">ЛЮБИМАЯ ИГРУШКА:</span>
+                  <span className="font-bold text-slate-800 text-[10px] truncate flex items-center gap-1 mt-0.5">
+                    {(() => {
+                      const favToy = CAT_FAVORITE_TOYS[selectedDetailCat.puzzleId || ""];
+                      if (!favToy) return "Дразнилка";
+                      const isPlaced = placedCats.some(c => c.puzzleId === favToy.id);
+                      return (
+                        <span className="flex items-center gap-1">
+                          {favToy.emoji} {favToy.name}
+                          <span className={isPlaced ? "text-emerald-500 text-[8px] font-pixel" : "text-slate-400 text-[8px] font-pixel"}>
+                            {isPlaced ? "(+50% 💖)" : "(нет дома)"}
+                          </span>
+                        </span>
+                      );
+                    })()}
+                  </span>
+                </div>
+              </div>
+
+              {/* SKIN / COSTUMES COLLECTION & ACQUISITION */}
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-pixel text-slate-400 flex items-center gap-1">
+                  <ShoppingBag className="w-3.5 h-3.5 text-rose-450" />
+                  УЛУЧШЕНИЯ И КОСТЮМЫ НА КОТА (за Золотую пряжу):
+                </h4>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {AVAILABLE_SKINS.map((skin) => {
+                    const isUnlocked = unlockedSkins.includes(skin.id);
+                    const isEquipped = equippedSkins[selectedDetailCat.puzzleId || ""] === skin.id;
+
+                    return (
+                      <div
+                        key={skin.id}
+                        className={`p-2 rounded-xl border flex flex-col items-center text-center transition-all ${
+                          isEquipped ? "border-rose-400 bg-rose-50/20" : "border-slate-100 bg-slate-50/50 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="text-xl drop-shadow-sm mb-1">{skin.emoji}</span>
+                        <span className="text-[9.5px] font-bold text-slate-850 line-clamp-1">{skin.name}</span>
+                        <span className="text-[8px] text-amber-600 font-pixel font-bold">{skin.desc}</span>
+
+                        <div className="w-full mt-2">
+                          {isEquipped ? (
+                            <button
+                              onClick={() => {
+                                const updated = { ...equippedSkins };
+                                delete updated[selectedDetailCat.puzzleId || ""];
+                                updateEquippedSkins(updated);
+                                SOUNDS.playPop(1.0);
+                              }}
+                              className="w-full text-center bg-red-400 hover:bg-red-500 text-white text-[8px] font-pixel py-1 rounded-md cursor-pointer uppercase"
+                            >
+                              Снять ✖
+                            </button>
+                          ) : isUnlocked ? (
+                            <button
+                              onClick={() => {
+                                const updated = { ...equippedSkins, [selectedDetailCat.puzzleId || ""]: skin.id };
+                                updateEquippedSkins(updated);
+                                SOUNDS.playPop(1.2);
+                              }}
+                              className="w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white text-[8px] font-pixel py-1 rounded-md cursor-pointer uppercase font-bold"
+                            >
+                              Надеть 👕
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                if (goldYarnCount < skin.price) {
+                                  SOUNDS.playError();
+                                  alert("Не хватает золотой пряжи! Попробуй выполнить достижения или открыть Коробку Удачи.");
+                                  return;
+                                }
+                                updateGoldYarn(goldYarnCount - skin.price);
+                                updateUnlockedSkins([...unlockedSkins, skin.id]);
+                                SOUNDS.playSuccessColor();
+                              }}
+                              className="w-full text-center bg-amber-400 hover:bg-amber-300 text-slate-950 text-[8px] font-pixel font-extrabold py-1.5 rounded-md cursor-pointer shadow-xs"
+                            >
+                              Купить за {skin.price} 🌟
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Action play button */}
+              <button
+                onClick={() => {
+                  const randomPhrase = CAT_MEOWS_TEXT[Math.floor(Math.random() * CAT_MEOWS_TEXT.length)];
+                  setActiveSpeech((prev) => ({ ...prev, [selectedDetailCat.id]: randomPhrase }));
+                  setActiveHeart((prev) => ({ ...prev, [selectedDetailCat.id]: true }));
+                  SOUNDS.playMeow();
+                  setSelectedDetailCat(null);
+                }}
+                className="w-full text-center bg-rose-400 hover:bg-rose-500 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs mt-1"
+              >
+                Погладить Котика 🐾❤️
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
