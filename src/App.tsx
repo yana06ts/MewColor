@@ -288,33 +288,6 @@ export default function App() {
       if (isFirstTime) {
         setCompletedPuzzles(newCompleted);
         localStorage.setItem("meowcolor_completed", JSON.stringify(newCompleted));
-
-        // Auto-place newly completed cat or toy in the room!
-        const savedPlaced = localStorage.getItem("meowcolor_placed_cats");
-        let currentPlaced = [];
-        if (savedPlaced) {
-          try {
-            currentPlaced = JSON.parse(savedPlaced);
-          } catch (e) {}
-        }
-        const isAlreadyPlaced = currentPlaced.some(
-          (item: any) => item.puzzleId === puzzleId
-        );
-        if (!isAlreadyPlaced) {
-          const type = selectedPuzzle!.category === "cats" ? "cat" : "toy";
-          const newItem = {
-            id: `placed_${type}_${puzzleId}_${Date.now()}`,
-            type,
-            puzzleId,
-            name: selectedPuzzle!.name.replace(/[🐾🐈‍⬛📦🧸🐚🛋️🌳🥣🌀🏰🌸🪵🌌]/g, "").trim(),
-            x: 25 + Math.random() * 50,
-            y: 55 + Math.random() * 15,
-            isSleeping: false,
-            flipped: Math.random() > 0.5,
-          };
-          currentPlaced.push(newItem);
-          localStorage.setItem("meowcolor_placed_cats", JSON.stringify(currentPlaced));
-        }
       }
 
       // Add yarn rewards (rebalanced lower according to request!)

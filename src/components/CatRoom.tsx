@@ -11,7 +11,7 @@ export const CAT_FAVORITE_TOYS: Record<string, { id: string; name: string; emoji
   royal_white_cat: { id: "toy_fish", name: "Рыбка с мятой", emoji: "🐟" },
   calico_cat: { id: "squeaky_mouse", name: "Игрушка-Мышка", emoji: "🐭" },
   box_cat: { id: "toy_scratch", name: "Кошачья когтеточка", emoji: "🪵" },
-  samurai_cat: { id: "toy_fish", name: "Рыбка с мятой", emoji: "🐟" },
+  samurai_cat: { id: "toy_bell_ball", name: "Мячик с бубенчиком", emoji: "🔔" },
 };
 
 // Cute buyable skins for golden yarn
@@ -900,7 +900,7 @@ export function CatRoom({
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-sm w-full max-h-[85%] flex flex-col relative z-50 text-slate-800"
+                className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-lg w-full max-h-[85%] flex flex-col relative z-50 text-slate-800"
               >
                 <button
                   onClick={() => setIsBasketOpen(false)}
@@ -966,29 +966,53 @@ export function CatRoom({
                       </p>
                     </div>
 
-                    <div className="space-y-1 max-h-[140px] overflow-y-auto pr-0.5 scrollbar-thin">
+                    <div className="space-y-1.5 max-h-[170px] overflow-y-auto pr-0.5 scrollbar-thin">
                       {activeSynergiesInfo.map((syn) => (
                         <div
                           key={syn.catId}
-                          className={`p-1.5 rounded-lg border text-[7.5px] flex items-center justify-between transition-colors ${
+                          className={`p-2.5 rounded-xl border text-[8px] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all ${
                             syn.isActive
-                              ? "bg-emerald-50 border-emerald-250/30 text-emerald-900"
+                              ? "bg-emerald-50/70 border-emerald-200 text-emerald-950 shadow-3xs"
                               : "bg-slate-50 border-slate-200 text-slate-500"
                           }`}
                         >
-                          <div className="flex flex-col">
-                            <span className="font-extrabold text-slate-700 leading-tight">
-                              {syn.catName} + {syn.toyEmoji} {syn.toyName}
-                            </span>
-                            <span className="text-[5.5px] text-slate-450 mt-0.5 font-semibold">
-                              {syn.isActive ? "Активно! +1 купон / 10 мин" : "Нужно раскрасить и выставить игрушку"}
-                            </span>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 font-extrabold font-pixel text-slate-850">
+                              <span className="text-xs">🐾</span> 
+                              <span>{syn.catName} + {syn.toyEmoji} {syn.toyName}</span>
+                            </div>
+                            
+                            {/* Detailed checks */}
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[7px] font-semibold text-slate-500 font-pixel">
+                              <span className="flex items-center gap-0.5">
+                                🐈 Котик: {syn.isCatPlaced ? (
+                                  <strong className="text-emerald-700 font-bold bg-emerald-100/80 px-1 py-0.2 rounded">В доме 🏠</strong>
+                                ) : (
+                                  <strong className="text-slate-400 font-bold bg-slate-100 px-1 py-0.2 rounded">Вне дома 💤</strong>
+                                )}
+                              </span>
+                              <span>•</span>
+                              <span className="flex items-center gap-0.5">
+                                {syn.toyEmoji} Игрушка: {syn.isToyPlaced ? (
+                                  <strong className="text-emerald-700 font-bold bg-emerald-100/80 px-1 py-0.2 rounded">В доме 🏠</strong>
+                                ) : (
+                                  <strong className="text-slate-400 font-bold bg-slate-100 px-1 py-0.2 rounded">Вне дома 💤</strong>
+                                )}
+                              </span>
+                            </div>
                           </div>
                           
-                          <div className="flex items-center gap-0.5 shrink-0 select-none">
-                            <span className={syn.isCatPlaced ? "text-emerald-500 text-[10px]" : "text-slate-250 grayscale text-[10px]"}>🐈</span>
-                            <span className="text-slate-300 text-[6px]">+</span>
-                            <span className={syn.isToyPlaced ? "text-emerald-500 text-[10px]" : "text-slate-250 grayscale text-[10px]"} title={syn.toyName}>🧸</span>
+                          {/* Synergy status badge */}
+                          <div className="shrink-0 flex items-center">
+                            {syn.isActive ? (
+                              <div className="bg-emerald-550 text-white font-pixel font-bold text-[6.5px] px-1.5 py-1 rounded-md shadow-3xs animate-pulse uppercase tracking-wide">
+                                🔥 Активно (+1🎟️/10м)
+                              </div>
+                            ) : (
+                              <div className="bg-slate-200 text-slate-400 border border-slate-250/20 font-pixel font-semibold text-[6.5px] px-1.5 py-0.8 rounded-md uppercase">
+                                ✕ Не активна
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1525,59 +1549,61 @@ export function CatRoom({
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-sm w-full max-h-[85%] flex flex-col relative z-50 text-slate-800"
+              className="bg-white rounded-3xl p-4 shadow-2xl border-2 border-rose-100 max-w-xs w-full max-h-[85%] flex flex-col relative z-50 text-slate-800"
             >
               <button
                 onClick={() => setIsShelterOpen(false)}
-                className="absolute top-4 right-4 w-7 h-7 bg-slate-100 text-slate-500 font-bold rounded-full flex items-center justify-center hover:bg-slate-200 cursor-pointer text-xs"
+                className="absolute top-3 right-3 w-6 h-6 bg-slate-100 text-slate-500 font-bold rounded-full flex items-center justify-center hover:bg-slate-200 cursor-pointer text-xs"
               >
                 ✕
               </button>
 
-              <div className="text-center pb-2 border-b border-rose-100 shrink-0">
-                <h3 className="text-sm font-pixel font-black text-rose-700 uppercase flex items-center justify-center gap-1.5 pt-1">
+              <div className="text-center pb-1.5 border-b border-rose-100 shrink-0">
+                <h3 className="text-xs font-pixel font-black text-rose-700 uppercase flex items-center justify-center gap-1 pt-1">
                   🐾 Питомник 🐾
                 </h3>
               </div>
 
               {/* Scrollable list of cats */}
-              <div className="flex-1 overflow-y-auto py-3 space-y-2.5 max-h-[380px] pr-1 scrollbar-thin">
+              <div className="flex-1 overflow-y-auto py-2.5 space-y-2 max-h-[350px] pr-0.5 scrollbar-thin">
                 {unlockedCats.map((template) => {
                   const catId = template.id;
                   const currentLevel = catLevels[catId] || 1;
                   const duplicateCount = catDuplicates[catId] || 0;
+                  const placedCat = placedCats.find((c) => c.puzzleId === catId);
+                  const isPlaced = !!placedCat;
 
                   return (
                     <div
                       key={catId}
-                      className="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex items-center gap-3 transition-all hover:bg-rose-50/20"
+                      className="bg-slate-50 border border-slate-100 rounded-xl p-2 flex items-center gap-2 transition-all hover:bg-rose-50/10"
                     >
                       {/* Left: Pixel Representation Preview */}
-                      <div className="shrink-0 scale-90 bg-white/60 p-1.5 rounded-xl border border-slate-200 shadow-3xs">
+                      <div className="shrink-0 scale-75 bg-white/60 p-1 rounded-lg border border-slate-200 shadow-3xs">
                         {getCatPixelIcon(catId)}
                       </div>
 
                       {/* Center: Info & Levelling */}
-                      <div className="flex-1 text-left min-w-0 space-y-1">
+                      <div className="flex-1 text-left min-w-0 space-y-0.5">
                         <div className="flex items-center gap-1">
-                          <h4 className="text-[10px] font-pixel font-bold text-slate-800 truncate">
+                          <h4 className="text-[9px] font-pixel font-bold text-slate-800 truncate">
                             {template.name.replace(/[🐾🐈‍⬛📦]/g, "").trim()}
                           </h4>
                         </div>
 
-                        <div className="flex items-center gap-2 text-[8px] text-slate-500 font-semibold font-pixel">
-                          <span>Уровень: <strong className="text-amber-600 font-bold">Lvl {currentLevel}</strong></span>
+                        <div className="flex items-center gap-1.5 text-[7px] text-slate-500 font-semibold font-pixel">
+                          <span>Lvl {currentLevel}</span>
                           <span>•</span>
-                          <span>Карточек: <strong className="text-rose-600 font-bold">{duplicateCount} 🎁</strong></span>
+                          <span>🎁 {duplicateCount} шт</span>
                         </div>
 
                         {/* Level Up interface */}
                         {currentLevel >= 5 ? (
-                          <div className="text-[7.5px] font-pixel text-emerald-600 font-extrabold text-left pt-0.5">
-                            👑 МАКСИМАЛЬНЫЙ УРОВЕНЬ!
+                          <div className="text-[6.5px] font-pixel text-emerald-600 font-extrabold text-left">
+                            👑 MAX LVL
                           </div>
                         ) : (
-                          <div className="pt-0.5 max-w-[210px] mx-0">
+                          <div className="pt-0.5">
                             {duplicateCount >= 1 ? (
                               <button
                                 onClick={() => {
@@ -1590,9 +1616,9 @@ export function CatRoom({
                                   SOUNDS.playSuccessColor();
                                   SOUNDS.playMeow();
                                 }}
-                                className="w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-black py-1 px-2 rounded-lg text-[7.5px] font-pixel cursor-pointer uppercase transition-colors"
+                                className="w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-0.5 px-1 rounded-sm text-[6.5px] font-pixel cursor-pointer uppercase transition-colors"
                               >
-                                Повысить за 1 Карточку 🎁
+                                Повысить (+1🎁)
                               </button>
                             ) : (
                               <button
@@ -1605,12 +1631,35 @@ export function CatRoom({
                                   SOUNDS.playSuccessColor();
                                   SOUNDS.playMeow();
                                 }}
-                                className="w-full text-center bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-900 font-black py-1 px-2 rounded-lg text-[7.5px] font-pixel cursor-pointer uppercase transition-colors"
+                                className="w-full text-center bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-900 font-bold py-0.5 px-1 rounded-sm text-[6.5px] font-pixel cursor-pointer uppercase transition-colors"
                               >
-                                Увеличить Lvl за {currentLevel * 150} 🧶
+                                {currentLevel * 150}🧶
                               </button>
                             )}
                           </div>
+                        )}
+                      </div>
+
+                      {/* Right: Room placement manual actions */}
+                      <div className="shrink-0 flex flex-col items-center gap-1 justify-center border-l border-slate-205 pl-1.5">
+                        {isPlaced ? (
+                          <button
+                            onClick={() => {
+                              handleRemoveCat(placedCat.id);
+                            }}
+                            className="bg-red-500 hover:bg-red-600 text-white text-[7px] font-pixel py-0.8 px-1.5 rounded-md cursor-pointer font-extrabold uppercase transition-all"
+                          >
+                            Убрать
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              handlePlaceCat(catId);
+                            }}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white text-[7px] font-pixel py-0.8 px-1.5 rounded-md cursor-pointer font-extrabold uppercase transition-all"
+                          >
+                            Добавить
+                          </button>
                         )}
                       </div>
                     </div>
@@ -1618,10 +1667,10 @@ export function CatRoom({
                 })}
               </div>
 
-              <div className="pt-2 border-t border-rose-100 shrink-0">
+              <div className="pt-1.5 border-t border-rose-100 shrink-0">
                 <button
                   onClick={() => setIsShelterOpen(false)}
-                  className="w-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold py-2 rounded-xl text-[9px] font-pixel transition-colors cursor-pointer uppercase tracking-wide"
+                  className="w-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold py-1.5 rounded-xl text-[8.5px] font-pixel transition-colors cursor-pointer uppercase tracking-wide"
                 >
                   Закрыть Питомник 🐾🐈
                 </button>
