@@ -92,14 +92,36 @@ export function CatRoom({
   const roomRef = useRef<HTMLDivElement>(null);
   
   // Try to load placed objects from local storage, or spawn first completed cat by default
-  const [placedCats, setPlacedCats] = useState<PlacedCat[]>([]);
+  const [placedCats, setPlacedCats] = useState<PlacedCat[]>(() => {
+    const saved = localStorage.getItem("meowcolor_placed_cats");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [];
+  });
   const [isDay, setIsDay] = useState<boolean>(true);
   const [fireplaceActive, setFireplaceActive] = useState<boolean>(true);
   
   // Custom design states synced with Decorations / Shop Equips
-  const [rugTheme, setRugTheme] = useState<string>("pink");
-  const [wallpaper, setWallpaper] = useState<string>("stripes");
-  const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
+  const [rugTheme, setRugTheme] = useState<string>(() => {
+    return localStorage.getItem("meowcolor_equipped_rug") || "pink";
+  });
+  const [wallpaper, setWallpaper] = useState<string>(() => {
+    return localStorage.getItem("meowcolor_equipped_wallpaper") || "stripes";
+  });
+  const [purchasedItems, setPurchasedItems] = useState<string[]>(() => {
+    const savedPurchases = localStorage.getItem("meowcolor_purchased_items");
+    if (savedPurchases) {
+      try {
+        return JSON.parse(savedPurchases);
+      } catch (e) {}
+    }
+    return [];
+  });
   
   const [activeSpeech, setActiveSpeech] = useState<{ [id: string]: string }>({});
   const [activeHeart, setActiveHeart] = useState<{ [id: string]: boolean }>({});
@@ -165,6 +187,47 @@ export function CatRoom({
 
     return rate * furnitureMult;
   }, [placedCats, catLevels, equippedSkins, puzzleTemplates]);
+
+  // Dynamic furniture multipliers stats for display
+  const furnitureBonusStats = React.useMemo(() => {
+    const placedShopIds = placedCats.filter(item => item.shopId).map(item => item.shopId);
+    
+    const items = [
+      { id: "cushion", name: "Королевский диван 🛋️", pct: 25 },
+      { id: "golden_fish", name: "Миска с карасями 🥣", pct: 15 },
+      { id: "tunnel", name: "Коробка мечты 📦", pct: 15 },
+      { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", pct: 45 },
+    ];
+
+    const activeItems = items.filter(it => placedShopIds.includes(it.id));
+    const totalBonus = activeItems.reduce((acc, it) => acc + it.pct, 0);
+
+    return {
+      activeItems,
+      totalBonus
+    };
+  }, [placedCats]);
+
+  // Active Cat + Toy synergies calculations for display
+  const activeSynergiesInfo = React.useMemo(() => {
+    return Object.entries(CAT_FAVORITE_TOYS).map(([catId, toyConfig]) => {
+      const catTemplate = puzzleTemplates.find(p => p.id === catId);
+      const isCatPlaced = placedCats.some(c => !c.shopId && c.puzzleId === catId);
+      const isToyPlaced = placedCats.some(c => c.type === "toy" ? c.puzzleId === toyConfig.id : c.puzzleId === toyConfig.id && puzzleTemplates.find(p => p.id === c.puzzleId)?.category === "toys");
+      const isSynergyActive = isCatPlaced && isToyPlaced;
+
+      return {
+        catId,
+        catName: catTemplate?.name.replace(/[🐾🐈‍⬛📦]/g, "").trim() || "Котик",
+        toyId: toyConfig.id,
+        toyName: toyConfig.name,
+        toyEmoji: toyConfig.emoji,
+        isCatPlaced,
+        isToyPlaced,
+        isActive: isSynergyActive
+      };
+    });
+  }, [placedCats, puzzleTemplates]);
 
   // live timer to accumulate passive yarn / tickets (with 10-mins favorite toys combos!)
   useEffect(() => {
@@ -612,7 +675,7 @@ export function CatRoom({
             title="Мой Питомник / Клуб Котиков"
           >
             <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-600" />
-            <span className="text-[9px] uppercase font-bold scale-85">Питомник 🐾</span>
+            <span className="text-[9px] uppercase font-bold scale-85">Питомник</span>
           </button>
         </div>
       </div>
@@ -837,7 +900,7 @@ export function CatRoom({
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-xs w-full text-center relative z-50 text-slate-800"
+                className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-sm w-full max-h-[85%] flex flex-col relative z-50 text-slate-800"
               >
                 <button
                   onClick={() => setIsBasketOpen(false)}
@@ -846,63 +909,111 @@ export function CatRoom({
                   ✕
                 </button>
 
-                <h3 className="text-xs font-pixel font-black text-rose-700 uppercase flex items-center justify-center gap-1.5 mt-1">
+                <h3 className="text-xs font-pixel font-black text-rose-700 uppercase flex items-center justify-center gap-1.5 mt-1 shrink-0">
                   🧺 КОРЗИНА НАКОПЛЕНИЙ 🧺
                 </h3>
                 
-                <p className="text-[8px] text-slate-500 mt-2 font-semibold leading-relaxed">
+                <p className="text-[8px] text-slate-500 mt-1 font-semibold leading-relaxed shrink-0">
                   Кошачья комната пассивно генерирует обычную пряжу и купоны, пока вы занимаетесь своими делами!
                 </p>
 
-                {/* Info Bullet points */}
-                <div className="my-3 text-left bg-rose-50/40 border border-rose-100/60 p-2.5 rounded-xl space-y-1 text-[8px] leading-relaxed">
-                  <div className="flex gap-1">
-                    <span className="text-rose-400 font-bold">•</span>
-                    <p className="font-semibold text-slate-600">
-                      <strong className="text-rose-700">Обычная пряжка 🧶</strong> копится от всех котиков в комнате в зависимости от их уровня и шляп.
-                    </p>
+                {/* SCROLLABLE INNER PARTS */}
+                <div className="flex-1 overflow-y-auto my-3 pr-1 space-y-3.5 scrollbar-thin">
+                  {/* Accumulations */}
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div className="flex flex-col items-center">
+                      <span className="text-[7.5px] font-pixel text-slate-405 font-bold">НАКОПЛЕНО ПРЯЖИ</span>
+                      <span className="text-xs font-black text-amber-600 mt-1">🧶 {accruedYarn}</span>
+                    </div>
+                    <div className="flex flex-col items-center border-l border-slate-200">
+                      <span className="text-[7.5px] font-pixel text-slate-405 font-bold">НАКОПЛЕНО КУПОНОВ</span>
+                      <span className="text-xs font-black text-rose-500 mt-1">🎟️ +{accruedTickets}</span>
+                    </div>
                   </div>
-                  <div className="flex gap-1">
-                    <span className="text-rose-400 font-bold">•</span>
-                    <p className="font-semibold text-slate-600">
-                      <strong className="text-rose-700">Купоны 🎟️</strong> даются по 1 штуке за каждые 150 🧶, а также <span className="text-emerald-600 font-bold">+1 шт каждые 10 минут</span> от КАЖДОЙ активной пары котик + любимая игрушка!
-                    </p>
+
+                  {/* ACTIVE SPEED MULTIPLIERS (Request 7) */}
+                  <div className="bg-amber-50/50 border border-amber-200/60 rounded-xl p-2.5 text-left space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[7.5px] font-pixel text-amber-800 font-bold uppercase tracking-wide">
+                        ⚡ Скорость мебели (+{furnitureBonusStats.totalBonus}%):
+                      </span>
+                    </div>
+
+                    {furnitureBonusStats.activeItems.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {furnitureBonusStats.activeItems.map((item) => (
+                          <div key={item.id} className="flex items-center justify-between text-[7px] font-semibold text-slate-650">
+                            <span>• {item.name}</span>
+                            <span className="text-amber-600 font-bold">+{item.pct}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[7px] text-slate-450 leading-relaxed font-semibold">
+                        Готовая мебель не выставлена в комнате. Купите её во вкладке «Украшения», чтобы увеличить скорость сбора пряжи до <strong className="text-amber-700">+100%</strong>!
+                      </p>
+                    )}
                   </div>
-                  <div className="flex gap-1">
-                    <span className="text-rose-400 font-bold">•</span>
-                    <p className="font-semibold text-slate-600">
-                      Установите мебель (диваны, замки), чтобы повысить общую скорость до <span className="text-rose-600 font-bold">+45%</span>!
-                    </p>
+
+                  {/* CAT + TOY ACTIVE SYNERGIES (Request 8) */}
+                  <div className="bg-rose-50/40 border border-rose-100/60 rounded-xl p-2.5 text-left space-y-1.5">
+                    <div>
+                      <span className="text-[7.5px] font-pixel text-rose-800 font-bold uppercase tracking-wide">
+                        🤝 Пары Котик + Игрушка:
+                      </span>
+                      <p className="text-[6.5px] text-slate-500 mt-0.5 font-semibold leading-relaxed">
+                        Каждая активная пара (котик и его игрушка выставлены в комнате) приносит <strong className="text-rose-600">+1 купон каждые 10 минут</strong>!
+                      </p>
+                    </div>
+
+                    <div className="space-y-1 max-h-[140px] overflow-y-auto pr-0.5 scrollbar-thin">
+                      {activeSynergiesInfo.map((syn) => (
+                        <div
+                          key={syn.catId}
+                          className={`p-1.5 rounded-lg border text-[7.5px] flex items-center justify-between transition-colors ${
+                            syn.isActive
+                              ? "bg-emerald-50 border-emerald-250/30 text-emerald-900"
+                              : "bg-slate-50 border-slate-200 text-slate-500"
+                          }`}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-extrabold text-slate-700 leading-tight">
+                              {syn.catName} + {syn.toyEmoji} {syn.toyName}
+                            </span>
+                            <span className="text-[5.5px] text-slate-450 mt-0.5 font-semibold">
+                              {syn.isActive ? "Активно! +1 купон / 10 мин" : "Нужно раскрасить и выставить игрушку"}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-0.5 shrink-0 select-none">
+                            <span className={syn.isCatPlaced ? "text-emerald-500 text-[10px]" : "text-slate-250 grayscale text-[10px]"}>🐈</span>
+                            <span className="text-slate-300 text-[6px]">+</span>
+                            <span className={syn.isToyPlaced ? "text-emerald-500 text-[10px]" : "text-slate-250 grayscale text-[10px]"} title={syn.toyName}>🧸</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* Accumulations */}
-                <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 my-3">
-                  <div className="flex flex-col items-center">
-                    <span className="text-[7.5px] font-pixel text-slate-405 font-bold">НАКОПЛЕНО ПРЯЖИ</span>
-                    <span className="text-xs font-black text-amber-600 mt-1">🧶 {accruedYarn}</span>
-                  </div>
-                  <div className="flex flex-col items-center border-l border-slate-200">
-                    <span className="text-[7.5px] font-pixel text-slate-405 font-bold">НАКОПЛЕНО КУПОНОВ</span>
-                    <span className="text-xs font-black text-rose-500 mt-1">🎟️ +{accruedTickets}</span>
-                  </div>
+                {/* Claim Button */}
+                <div className="shrink-0 pt-2 border-t border-rose-100">
+                  {accruedYarn > 0 || accruedTickets > 0 ? (
+                    <button
+                      onClick={handleClaimIncome}
+                      className="w-full bg-rose-500 hover:bg-rose-600 text-white font-extrabold py-2 rounded-xl text-[9px] font-pixel transition-colors cursor-pointer shadow-sm uppercase tracking-wide"
+                    >
+                      Забрать ресурсы 🎒🐾
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full bg-slate-100 text-slate-400 font-extrabold py-1.5 rounded-xl text-[9px] font-pixel pointer-events-none uppercase tracking-wide"
+                    >
+                      Корзина Пока Пуста! 💤
+                    </button>
+                  )}
                 </div>
-
-                {accruedYarn > 0 || accruedTickets > 0 ? (
-                  <button
-                    onClick={handleClaimIncome}
-                    className="w-full bg-rose-500 hover:bg-rose-600 text-white font-extrabold py-2 rounded-xl text-[9px] font-pixel transition-colors cursor-pointer shadow-sm uppercase tracking-wide"
-                  >
-                    Забрать ресурсы 🎒🐾
-                  </button>
-                ) : (
-                  <button
-                    disabled
-                    className="w-full bg-slate-100 text-slate-400 font-extrabold py-2 rounded-xl text-[9px] font-pixel pointer-events-none uppercase tracking-wide"
-                  >
-                    Корзина Пока Пуста! 💤
-                  </button>
-                )}
               </motion.div>
             </div>
           )}
@@ -1424,12 +1535,9 @@ export function CatRoom({
               </button>
 
               <div className="text-center pb-2 border-b border-rose-100 shrink-0">
-                <h3 className="text-xs font-pixel font-black text-rose-700 uppercase flex items-center justify-center gap-1.5 pt-1">
-                  🐾 Питомник / Клуб Котиков 🐾
+                <h3 className="text-sm font-pixel font-black text-rose-700 uppercase flex items-center justify-center gap-1.5 pt-1">
+                  🐾 Питомник 🐾
                 </h3>
-                <p className="text-[8px] text-slate-500 mt-1 font-semibold leading-relaxed">
-                  Здесь вы можете прокачивать и добавлять в дом всех котиков, включая тех, которые выпали в Коробке Удачи, но еще не раскрашены!
-                </p>
               </div>
 
               {/* Scrollable list of cats */}
@@ -1438,16 +1546,11 @@ export function CatRoom({
                   const catId = template.id;
                   const currentLevel = catLevels[catId] || 1;
                   const duplicateCount = catDuplicates[catId] || 0;
-                  const placedCat = placedCats.find((c) => c.puzzleId === catId);
-                  const isPlaced = !!placedCat;
-
-                  // Check if this cat is unlocked only via gacha (uncolored) or completed
-                  const isColored = completedPuzzles.includes(catId);
 
                   return (
                     <div
                       key={catId}
-                      className="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col sm:flex-row items-center gap-3 transition-all hover:bg-rose-50/20"
+                      className="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex items-center gap-3 transition-all hover:bg-rose-50/20"
                     >
                       {/* Left: Pixel Representation Preview */}
                       <div className="shrink-0 scale-90 bg-white/60 p-1.5 rounded-xl border border-slate-200 shadow-3xs">
@@ -1455,23 +1558,14 @@ export function CatRoom({
                       </div>
 
                       {/* Center: Info & Levelling */}
-                      <div className="flex-1 text-center sm:text-left min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1">
+                      <div className="flex-1 text-left min-w-0 space-y-1">
+                        <div className="flex items-center gap-1">
                           <h4 className="text-[10px] font-pixel font-bold text-slate-800 truncate">
                             {template.name.replace(/[🐾🐈‍⬛📦]/g, "").trim()}
                           </h4>
-                          <span
-                            className={`text-[6.5px] font-bold px-1 py-0.5 rounded-full uppercase leading-none font-pixel ${
-                              isColored
-                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                : "bg-purple-100 text-purple-800 border border-purple-200 animate-pulse"
-                            }`}
-                          >
-                            {isColored ? "🎨 Раскрашен" : "🎁 Из Коробки"}
-                          </span>
                         </div>
 
-                        <div className="flex items-center justify-center sm:justify-start gap-2 text-[8px] text-slate-500 font-semibold font-pixel">
+                        <div className="flex items-center gap-2 text-[8px] text-slate-500 font-semibold font-pixel">
                           <span>Уровень: <strong className="text-amber-600 font-bold">Lvl {currentLevel}</strong></span>
                           <span>•</span>
                           <span>Карточек: <strong className="text-rose-600 font-bold">{duplicateCount} 🎁</strong></span>
@@ -1479,11 +1573,11 @@ export function CatRoom({
 
                         {/* Level Up interface */}
                         {currentLevel >= 5 ? (
-                          <div className="text-[7.5px] font-pixel text-emerald-600 font-extrabold text-center sm:text-left pt-0.5">
+                          <div className="text-[7.5px] font-pixel text-emerald-600 font-extrabold text-left pt-0.5">
                             👑 МАКСИМАЛЬНЫЙ УРОВЕНЬ!
                           </div>
                         ) : (
-                          <div className="pt-0.5 max-w-[210px] mx-auto sm:mx-0">
+                          <div className="pt-0.5 max-w-[210px] mx-0">
                             {duplicateCount >= 1 ? (
                               <button
                                 onClick={() => {
@@ -1517,39 +1611,6 @@ export function CatRoom({
                               </button>
                             )}
                           </div>
-                        )}
-                      </div>
-
-                      {/* Right: Room placement actions */}
-                      <div className="shrink-0 flex flex-col items-center justify-center gap-1.5">
-                        <span
-                          className={`text-[7px] font-pixel font-bold px-2 py-0.5 rounded-md leading-normal ${
-                            isPlaced
-                              ? "bg-emerald-50 text-emerald-700 font-black border border-emerald-200"
-                              : "bg-slate-100 text-slate-400"
-                          }`}
-                        >
-                          {isPlaced ? "🏠 Дома" : "💤 Свободен"}
-                        </span>
-
-                        {isPlaced ? (
-                          <button
-                            onClick={() => {
-                              handleRemoveCat(placedCat.id);
-                            }}
-                            className="bg-red-500 hover:bg-red-600 text-white text-[7.5px] font-pixel py-1 px-1.5 rounded-lg cursor-pointer font-extrabold uppercase transition-colors"
-                          >
-                            Убрать 🧺
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              handlePlaceCat(catId);
-                            }}
-                            className="bg-rose-500 hover:bg-rose-600 text-white text-[7.5px] font-pixel py-1 px-1.5 rounded-lg cursor-pointer font-extrabold uppercase transition-colors"
-                          >
-                            Поселить 🏠
-                          </button>
                         )}
                       </div>
                     </div>

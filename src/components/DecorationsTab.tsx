@@ -32,10 +32,10 @@ export function DecorationsTab({
 }: DecorationsTabProps) {
   // 1. Direct buy items config
   const SHOP_ITEMS = [
-    { id: "cushion", name: "Королевский диван 🛋️", price: 30, description: "Просторный мягкий диван для дневного сна всей кошачьей банды" },
-    { id: "golden_fish", name: "Миска с карасями 🥣", price: 25, description: "Полная миска свежих карасей для сытого кошачьего мурчания" },
-    { id: "tunnel", name: "Коробка мечты 📦", price: 40, description: "Простая картонная коробка — идеальный замок для любого котика" },
-    { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками" },
+    { id: "cushion", name: "Королевский диван 🛋️", price: 30, description: "Просторный мягкий диван для дневного сна всей кошачьей банды. +25% к общей скорости сбора пряжи! ⚡" },
+    { id: "golden_fish", name: "Миска с карасями 🥣", price: 25, description: "Полная миска свежих карасей для сытого кошачьего мурчания. +15% к общей скорости сбора пряжи! ⚡" },
+    { id: "tunnel", name: "Коробка мечты 📦", price: 40, description: "Простая картонная коробка — идеальный замок для любого котика. +15% к общей скорости сбора пряжи! ⚡" },
+    { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками. +45% к общей скорости сбора пряжи! ⚡" },
   ];
 
   // 2. Rug designs config
@@ -60,6 +60,7 @@ export function DecorationsTab({
   const [equippedRug, setEquippedRug] = useState<string>("pink");
   const [equippedWallpaper, setEquippedWallpaper] = useState<string>("stripes");
   const [placedItems, setPlacedItems] = useState<PlacedItem[]>([]);
+  const [boughtItemMessage, setBoughtItemMessage] = useState<{ name: string; emoji: string } | null>(null);
 
   // Selected sub-category inside decorations tab
   const [activeSection, setActiveSection] = useState<"toys" | "shop" | "themes">("toys");
@@ -170,6 +171,9 @@ export function DecorationsTab({
     };
     const updated = [...placedItems, newItem];
     savePlacedItemsToRoom(updated);
+
+    const emoji = id === "cushion" ? "🛋️" : id === "golden_fish" ? "🥣" : id === "tunnel" ? "📦" : "🏰";
+    setBoughtItemMessage({ name, emoji });
 
     SOUNDS.playSuccessColor();
   };
@@ -347,7 +351,7 @@ export function DecorationsTab({
                             className="bg-rose-400 text-white hover:bg-rose-500 px-3 py-1.5 rounded-xl text-[9px] font-pixel font-bold cursor-pointer transition-all flex items-center gap-1"
                           >
                             <span>🎨 Раскрасить</span>
-                            <span className="text-amber-200 font-bold">+{toy.yarnReward}🧶</span>
+                            <span className="text-amber-200 font-bold">+{Math.max(15, Math.floor(toy.yarnReward * 0.40))}🧶</span>
                           </button>
                         )}
                         
@@ -542,7 +546,45 @@ export function DecorationsTab({
           </div>
         )}
 
-      </div>
+       </div>
+
+      {/* PURCHASE CONFIRMATION MODAL */}
+      {boughtItemMessage && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 shadow-2xl border-2 border-rose-100 max-w-sm w-full relative text-slate-800 text-center">
+            <button
+              onClick={() => setBoughtItemMessage(null)}
+              className="absolute top-4 right-4 w-7 h-7 bg-slate-105 text-slate-500 font-bold rounded-full flex items-center justify-center hover:bg-slate-200 cursor-pointer text-xs"
+            >
+              ✕
+            </button>
+
+            <div className="text-5xl my-4 animate-bounce">
+              {boughtItemMessage.emoji}
+            </div>
+
+            <h3 className="text-xs font-pixel font-black text-rose-700 uppercase tracking-wide">
+              Спасибо за покупку! 🎉
+            </h3>
+
+            <div className="mt-3 p-3 bg-rose-50/50 rounded-xl border border-rose-100 text-xs font-semibold text-slate-650 leading-relaxed">
+              Вы успешно приобрели <strong className="text-rose-700">{boughtItemMessage.name}</strong>! 
+              <div className="mt-2 text-[10px] text-slate-500 leading-snug">
+                Теперь этот предмет автоматически размещен в вашей комнате. Вы можете убрать или поставить его заново во вкладке «Украшения котика». Мебель дает пассивный прирост к общей скорости сбора пряжи!
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <button
+                onClick={() => setBoughtItemMessage(null)}
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold py-2 rounded-xl text-[10px] font-pixel transition-colors cursor-pointer uppercase tracking-wide"
+              >
+                Отлично! 🐾
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
