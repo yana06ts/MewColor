@@ -317,9 +317,11 @@ export default function App() {
         }
       }
 
-      // Add yarn rewards (paid exactly according to the displayed catalog amount!)
+      // Add yarn rewards (rebalanced lower according to request!)
       const originalReward = selectedPuzzle!.yarnReward;
-      const finalReward = isFirstTime ? originalReward : Math.max(5, Math.floor(originalReward * 0.15));
+      const finalReward = isFirstTime 
+        ? Math.max(15, Math.floor(originalReward * 0.40)) 
+        : Math.max(2, Math.floor(originalReward * 0.08));
       updateYarn(yarnCount + finalReward);
 
       // Clear partial progress state storage
@@ -558,7 +560,7 @@ export default function App() {
                     {selectedPuzzle.name}
                   </h3>
                   <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold ml-1">
-                    +{selectedPuzzle.yarnReward} 🧶
+                    +{completedPuzzles.includes(selectedPuzzle.id) ? Math.max(2, Math.floor(selectedPuzzle.yarnReward * 0.08)) : Math.max(15, Math.floor(selectedPuzzle.yarnReward * 0.40))} 🧶
                   </span>
                 </div>
               </div>
@@ -768,8 +770,12 @@ export default function App() {
 
                             {/* Rewards badge */}
                             <div className="flex justify-end items-center mt-2 pt-1 border-t border-slate-100">
-                              <span className="text-[10px] font-pixel text-amber-600 font-extrabold flex items-center gap-0.5">
-                                🧶 {p.yarnReward}
+                              <span className="text-[10px] font-pixel text-slate-400 font-extrabold flex items-center gap-1">
+                                {completedPuzzles.includes(p.id) ? (
+                                  <span className="text-slate-400">Пройдено (повтор: +{Math.max(2, Math.floor(p.yarnReward * 0.08))} 🧶)</span>
+                                ) : (
+                                  <span className="text-amber-600">🧶 +{Math.max(15, Math.floor(p.yarnReward * 0.40))}</span>
+                                )}
                               </span>
                             </div>
                           </div>

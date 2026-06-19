@@ -109,12 +109,19 @@ export function CatRoom({
   const [accruedTickets, setAccruedTickets] = useState<number>(0);
   const [lastClaimTime, setLastClaimTime] = useState<number>(() => {
     const saved = localStorage.getItem("meowcolor_last_claim");
-    return saved ? parseInt(saved, 10) : Date.now();
+    if (saved) {
+      return parseInt(saved, 10);
+    } else {
+      const now = Date.now();
+      localStorage.setItem("meowcolor_last_claim", now.toString());
+      return now;
+    }
   });
 
   // Modal detail card state
   const [selectedDetailCat, setSelectedDetailCat] = useState<PlacedCat | null>(null);
   const [isBasketOpen, setIsBasketOpen] = useState<boolean>(false);
+  const [isShelterOpen, setIsShelterOpen] = useState<boolean>(false);
 
   // Dynamic calculations for total passive income rate (yarn per second)
   const currentRate = React.useMemo(() => {
@@ -161,15 +168,15 @@ export function CatRoom({
 
   // live timer to accumulate passive yarn / tickets (with 10-mins favorite toys combos!)
   useEffect(() => {
-    const interval = setInterval(() => {
+    const tick = () => {
       const elapsed = Math.floor((Date.now() - lastClaimTime) / 1000);
       const elapsedConstrained = Math.min(elapsed, 43200); // 12 Hours Cap
 
       const rawAccumulated = elapsedConstrained * currentRate;
       const calculatedYarn = Math.floor(rawAccumulated);
       
-      // Award 1 free spin coupon for every 200 regular yarn generated
-      const normalTickets = Math.floor(calculatedYarn / 200);
+      // Award 1 free spin coupon for every 150 regular yarn generated
+      const normalTickets = Math.floor(calculatedYarn / 150);
 
       // Award 1 extra ticket/coupon every 10 minutes (600s) for each active cat + favored toy pair in the shelter!
       let activeSynergiesCount = 0;
@@ -192,8 +199,12 @@ export function CatRoom({
       
       setAccruedYarn(calculatedYarn);
       setAccruedTickets(calculatedTickets);
-    }, 1000);
+    };
 
+    // Run tick immediately on render/mount so it starts instantly without showing 0 or resetting
+    tick();
+
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [lastClaimTime, currentRate, placedCats]);
 
@@ -590,6 +601,19 @@ export function CatRoom({
             <Flame className="w-3.5 h-3.5" />
             <span className="text-[9px] uppercase font-bold scale-85">камин</span>
           </button>
+
+          <button
+            id="shelter-control-btn"
+            onClick={() => {
+              setIsShelterOpen(true);
+              SOUNDS.playPop(1.4);
+            }}
+            className="p-1.5 rounded-lg border text-xs font-pixel flex items-center justify-center gap-1 cursor-pointer transition-colors bg-rose-100 border-rose-200 text-rose-700 hover:bg-rose-200"
+            title="Мой Питомник / Клуб Котиков"
+          >
+            <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-600" />
+            <span className="text-[9px] uppercase font-bold scale-85">Питомник 🐾</span>
+          </button>
         </div>
       </div>
 
@@ -780,9 +804,7 @@ export function CatRoom({
 
         {/* HARVEST YARN BASKET WIDGET (Accrued income) */}
         <div className="absolute right-4 top-4 z-40 select-none">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+          <button
             onClick={() => {
               setIsBasketOpen(true);
               SOUNDS.playPop(1.1);
@@ -791,18 +813,17 @@ export function CatRoom({
             title="Корзина накоплений 🧺"
           >
             {/* Basket Emoji */}
-            <span className="text-xl animate-bounce" style={{ animationDuration: accruedYarn > 0 ? "1.5s" : "4s" }}>🧺</span>
+            <span className="text-xl">🧺</span>
 
             {/* Notification Dot */}
             {(accruedYarn > 0 || accruedTickets > 0) && (
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 text-[6px] font-pixel text-white items-center justify-center font-bold">
+              <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-550 text-[6px] font-pixel text-white items-center justify-center font-bold shadow-xs">
                   !
                 </span>
               </span>
             )}
-          </motion.button>
+          </button>
         </div>
 
         {/* BASKET DETAILED ACCRUAL OVERLAY DIALOG */}
@@ -844,7 +865,7 @@ export function CatRoom({
                   <div className="flex gap-1">
                     <span className="text-rose-400 font-bold">•</span>
                     <p className="font-semibold text-slate-600">
-                      <strong className="text-rose-700">Купоны 🎟️</strong> даются по 1 штуке за каждые 200 🧶, а также <span className="text-emerald-600 font-bold">+1 шт каждые 10 минут</span> от КАЖДОЙ активной пары котик + любимая игрушка!
+                      <strong className="text-rose-700">Купоны 🎟️</strong> даются по 1 штуке за каждые 150 🧶, а также <span className="text-emerald-600 font-bold">+1 шт каждые 10 минут</span> от КАЖДОЙ активной пары котик + любимая игрушка!
                     </p>
                   </div>
                   <div className="flex gap-1">
@@ -1380,6 +1401,170 @@ export function CatRoom({
               >
                 Погладить Котика 🐾❤️
               </button>
+            </motion.div>
+          </div>
+        )}
+
+        {/* SHELTER CONTROL/BOARDING HOUSE DETAILED OVERLAY DIALOG */}
+        {isShelterOpen && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+            {/* Click outside to close */}
+            <div className="absolute inset-0" onClick={() => setIsShelterOpen(false)} />
+            
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-3xl p-5 shadow-2xl border-2 border-rose-100 max-w-sm w-full max-h-[85%] flex flex-col relative z-50 text-slate-800"
+            >
+              <button
+                onClick={() => setIsShelterOpen(false)}
+                className="absolute top-4 right-4 w-7 h-7 bg-slate-100 text-slate-500 font-bold rounded-full flex items-center justify-center hover:bg-slate-200 cursor-pointer text-xs"
+              >
+                ✕
+              </button>
+
+              <div className="text-center pb-2 border-b border-rose-100 shrink-0">
+                <h3 className="text-xs font-pixel font-black text-rose-700 uppercase flex items-center justify-center gap-1.5 pt-1">
+                  🐾 Питомник / Клуб Котиков 🐾
+                </h3>
+                <p className="text-[8px] text-slate-500 mt-1 font-semibold leading-relaxed">
+                  Здесь вы можете прокачивать и добавлять в дом всех котиков, включая тех, которые выпали в Коробке Удачи, но еще не раскрашены!
+                </p>
+              </div>
+
+              {/* Scrollable list of cats */}
+              <div className="flex-1 overflow-y-auto py-3 space-y-2.5 max-h-[380px] pr-1 scrollbar-thin">
+                {unlockedCats.map((template) => {
+                  const catId = template.id;
+                  const currentLevel = catLevels[catId] || 1;
+                  const duplicateCount = catDuplicates[catId] || 0;
+                  const placedCat = placedCats.find((c) => c.puzzleId === catId);
+                  const isPlaced = !!placedCat;
+
+                  // Check if this cat is unlocked only via gacha (uncolored) or completed
+                  const isColored = completedPuzzles.includes(catId);
+
+                  return (
+                    <div
+                      key={catId}
+                      className="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col sm:flex-row items-center gap-3 transition-all hover:bg-rose-50/20"
+                    >
+                      {/* Left: Pixel Representation Preview */}
+                      <div className="shrink-0 scale-90 bg-white/60 p-1.5 rounded-xl border border-slate-200 shadow-3xs">
+                        {getCatPixelIcon(catId)}
+                      </div>
+
+                      {/* Center: Info & Levelling */}
+                      <div className="flex-1 text-center sm:text-left min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1">
+                          <h4 className="text-[10px] font-pixel font-bold text-slate-800 truncate">
+                            {template.name.replace(/[🐾🐈‍⬛📦]/g, "").trim()}
+                          </h4>
+                          <span
+                            className={`text-[6.5px] font-bold px-1 py-0.5 rounded-full uppercase leading-none font-pixel ${
+                              isColored
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                : "bg-purple-100 text-purple-800 border border-purple-200 animate-pulse"
+                            }`}
+                          >
+                            {isColored ? "🎨 Раскрашен" : "🎁 Из Коробки"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-center sm:justify-start gap-2 text-[8px] text-slate-500 font-semibold font-pixel">
+                          <span>Уровень: <strong className="text-amber-600 font-bold">Lvl {currentLevel}</strong></span>
+                          <span>•</span>
+                          <span>Карточек: <strong className="text-rose-600 font-bold">{duplicateCount} 🎁</strong></span>
+                        </div>
+
+                        {/* Level Up interface */}
+                        {currentLevel >= 5 ? (
+                          <div className="text-[7.5px] font-pixel text-emerald-600 font-extrabold text-center sm:text-left pt-0.5">
+                            👑 МАКСИМАЛЬНЫЙ УРОВЕНЬ!
+                          </div>
+                        ) : (
+                          <div className="pt-0.5 max-w-[210px] mx-auto sm:mx-0">
+                            {duplicateCount >= 1 ? (
+                              <button
+                                onClick={() => {
+                                  const nextLevels = { ...catLevels, [catId]: currentLevel + 1 };
+                                  updateCatLevels(nextLevels);
+
+                                  const nextDuplicates = { ...catDuplicates, [catId]: duplicateCount - 1 };
+                                  updateCatDuplicates(nextDuplicates);
+
+                                  SOUNDS.playSuccessColor();
+                                  SOUNDS.playMeow();
+                                }}
+                                className="w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-black py-1 px-2 rounded-lg text-[7.5px] font-pixel cursor-pointer uppercase transition-colors"
+                              >
+                                Повысить за 1 Карточку 🎁
+                              </button>
+                            ) : (
+                              <button
+                                disabled={yarnCount < currentLevel * 150}
+                                onClick={() => {
+                                  updateYarn(yarnCount - currentLevel * 150);
+                                  const nextLevels = { ...catLevels, [catId]: currentLevel + 1 };
+                                  updateCatLevels(nextLevels);
+
+                                  SOUNDS.playSuccessColor();
+                                  SOUNDS.playMeow();
+                                }}
+                                className="w-full text-center bg-amber-400 hover:bg-amber-300 disabled:opacity-40 text-slate-900 font-black py-1 px-2 rounded-lg text-[7.5px] font-pixel cursor-pointer uppercase transition-colors"
+                              >
+                                Увеличить Lvl за {currentLevel * 150} 🧶
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right: Room placement actions */}
+                      <div className="shrink-0 flex flex-col items-center justify-center gap-1.5">
+                        <span
+                          className={`text-[7px] font-pixel font-bold px-2 py-0.5 rounded-md leading-normal ${
+                            isPlaced
+                              ? "bg-emerald-50 text-emerald-700 font-black border border-emerald-200"
+                              : "bg-slate-100 text-slate-400"
+                          }`}
+                        >
+                          {isPlaced ? "🏠 Дома" : "💤 Свободен"}
+                        </span>
+
+                        {isPlaced ? (
+                          <button
+                            onClick={() => {
+                              handleRemoveCat(placedCat.id);
+                            }}
+                            className="bg-red-500 hover:bg-red-600 text-white text-[7.5px] font-pixel py-1 px-1.5 rounded-lg cursor-pointer font-extrabold uppercase transition-colors"
+                          >
+                            Убрать 🧺
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              handlePlaceCat(catId);
+                            }}
+                            className="bg-rose-500 hover:bg-rose-600 text-white text-[7.5px] font-pixel py-1 px-1.5 rounded-lg cursor-pointer font-extrabold uppercase transition-colors"
+                          >
+                            Поселить 🏠
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="pt-2 border-t border-rose-100 shrink-0">
+                <button
+                  onClick={() => setIsShelterOpen(false)}
+                  className="w-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold py-2 rounded-xl text-[9px] font-pixel transition-colors cursor-pointer uppercase tracking-wide"
+                >
+                  Закрыть Питомник 🐾🐈
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
