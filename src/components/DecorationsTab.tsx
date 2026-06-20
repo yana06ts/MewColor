@@ -40,8 +40,8 @@ export function DecorationsTab({
     { id: "golden_fish", name: "Миска с карасями 🥣", price: 25, description: "Полная миска свежих карасей для сытого кошачьего мурчания. +15% к общей скорости сбора пряжи! ⚡" },
     { id: "tunnel", name: "Коробка мечты 📦", price: 40, description: "Простая картонная коробка — идеальный замок для любого котика. +15% к общей скорости сбора пряжи! ⚡" },
     { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками. +45% к общей скорости сбора пряжи! ⚡" },
-    { id: "cat_tree", name: "Кото-Дерево 🌳", crystalPrice: 35, description: "Роскошный деревянный комплекс с лесенками и домиками. +50% к общей скорости сбора пряжи! ⚡" },
-    { id: "aquarium", name: "Аквариум с рыбками 🐠", crystalPrice: 20, description: "Подводный мир прямо в комнате — котики в восторге от живых рыбок! +30% к общей скорости сбора пряжи! ⚡" },
+    { id: "cactus_scratch", name: "Когтеточка-кактус 🌵", crystalPrice: 35, description: "Стильная премиальная когтеточка в форме зеленого кактуса для пушистых лапок. +50% к общей скорости сбора пряжи! ⚡" },
+    { id: "aquarium", name: "Аквариум с рыбками 🐠", crystalPrice: 20, description: "Подводный мир прямо в комнате — котики в востовге от живых рыбок! +30% к общей скорости сбора пряжи! ⚡" },
   ];
 
   // 2. Rug designs config
@@ -51,6 +51,9 @@ export function DecorationsTab({
     { id: "green", name: "Сочная травка 💚", price: 35, color: "bg-emerald-200" },
     { id: "boho", name: "Горчичный пирог 💛", price: 35, color: "bg-amber-200" },
     { id: "space_rug", name: "Звёздный ковер 🌌", crystalPrice: 15, color: "bg-indigo-900" },
+    { id: "rainbow_rug", name: "Радужные лапки 🌈", crystalPrice: 12, color: "bg-fuchsia-300" },
+    { id: "golden_royal", name: "Тронный ковёр 👑", crystalPrice: 20, color: "bg-yellow-500" },
+    { id: "checkered_cyber", name: "Кибер-шахматы 🔲", crystalPrice: 15, color: "bg-slate-900" },
   ];
 
   // 3. Wallpapers config
@@ -59,6 +62,9 @@ export function DecorationsTab({
     { id: "stars", name: "Звёздное небо 🌌", price: 45, preview: "bg-indigo-950" },
     { id: "sakura", name: "Цветущая сакура 🌸", preview: "bg-pink-100", price: 45 },
     { id: "neon_wallpaper", name: "Космические обои 👾", crystalPrice: 25, preview: "bg-purple-950" },
+    { id: "mint_clouds", name: "Мятные облака ☁️", crystalPrice: 18, preview: "bg-teal-100" },
+    { id: "golden_damask", name: "Золотой дамаск ⚜️", crystalPrice: 22, preview: "bg-amber-100" },
+    { id: "strawberry_milk", name: "Клубничное молоко 🍓", crystalPrice: 15, preview: "bg-rose-100" },
   ];
 
   // State loaded from localStorage
@@ -183,7 +189,7 @@ export function DecorationsTab({
       id: `placed_shop_${id}_${Date.now()}`,
       type: "shop",
       shopId: id,
-      name: name.replace(/[🧸🐚🛋️🌳🥣🌀🐱🐾🌸🪵🌌📦🏰🐠]/g, "").trim(),
+      name: name.replace(/[🧸🐚🛋️🌳🥣🌀🐱🐾🌸🪵🌌📦🏰🐠🌵]/g, "").trim(),
       x: 25 + Math.random() * 50,
       y: 45 + Math.random() * 20,
       isSleeping: false,
@@ -192,7 +198,7 @@ export function DecorationsTab({
     const updated = [...placedItems, newItem];
     savePlacedItemsToRoom(updated);
 
-    const emoji = id === "cushion" ? "🛋️" : id === "golden_fish" ? "🥣" : id === "tunnel" ? "📦" : id === "luxury_tower" ? "🏰" : id === "cat_tree" ? "🌳" : "🐠";
+    const emoji = id === "cushion" ? "🛋️" : id === "golden_fish" ? "🥣" : id === "tunnel" ? "📦" : id === "luxury_tower" ? "🏰" : id === "cactus_scratch" ? "🌵" : "🐠";
     setBoughtItemMessage({ name, emoji });
 
     SOUNDS.playSuccessColor();
@@ -287,7 +293,7 @@ export function DecorationsTab({
         <div className="flex items-center gap-1.5">
           <Palette className="w-5 h-5 text-rose-500" />
           <h2 className="text-sm font-pixel text-rose-700 uppercase tracking-wide">
-            Уютные Украшения 🛋️
+            Уютные Украшения
           </h2>
         </div>
         <div className="flex items-center gap-2 font-pixel">
@@ -438,7 +444,7 @@ export function DecorationsTab({
                   >
                     {/* Visual icon badge placeholder */}
                     <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center text-4.5xl shadow-inner shrink-0 border border-rose-100">
-                      {item.id === "cushion" ? "🛋️" : item.id === "golden_fish" ? "🥣" : item.id === "tunnel" ? "📦" : item.id === "luxury_tower" ? "🏰" : item.id === "cat_tree" ? "🌳" : "🐠"}
+                      {item.id === "cushion" ? "🛋️" : item.id === "golden_fish" ? "🥣" : item.id === "tunnel" ? "📦" : item.id === "luxury_tower" ? "🏰" : item.id === "cactus_scratch" ? "🌵" : "🐠"}
                     </div>
 
                     {/* Metadata controls details */}
@@ -580,6 +586,15 @@ export function DecorationsTab({
                         )}
                         {wall.id === "neon_wallpaper" && (
                           <div className="absolute inset-0 flex items-center justify-center text-[10px]">👾</div>
+                        )}
+                        {wall.id === "mint_clouds" && (
+                          <div className="absolute inset-0 flex items-center justify-center text-[10px]">☁️</div>
+                        )}
+                        {wall.id === "golden_damask" && (
+                          <div className="absolute inset-0 flex items-center justify-center text-[10px]">⚜️</div>
+                        )}
+                        {wall.id === "strawberry_milk" && (
+                          <div className="absolute inset-0 flex items-center justify-center text-[10px]">🍓</div>
                         )}
                       </div>
                       
