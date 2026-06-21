@@ -1549,7 +1549,8 @@ export function CatRoom({
 
                 <div className="grid grid-cols-2 gap-2">
                   {AVAILABLE_SKINS.map((skin) => {
-                    const isUnlocked = unlockedSkins.includes(skin.id);
+                    const skinKey = `${selectedDetailCat.puzzleId || ""}_${skin.id}`;
+                    const isUnlocked = unlockedSkins.includes(skinKey);
                     const isEquipped = equippedSkins[selectedDetailCat.puzzleId || ""] === skin.id;
 
                     return (
@@ -1596,7 +1597,7 @@ export function CatRoom({
                                   return;
                                 }
                                 updateGoldYarn(goldYarnCount - skin.price);
-                                updateUnlockedSkins([...unlockedSkins, skin.id]);
+                                updateUnlockedSkins([...unlockedSkins, skinKey]);
                                 SOUNDS.playSuccessColor();
                               }}
                               className="w-full text-center bg-sky-500 hover:bg-sky-600 text-white text-[8px] font-pixel font-extrabold py-1.5 rounded-md cursor-pointer shadow-xs uppercase tracking-tight"
@@ -1615,19 +1616,7 @@ export function CatRoom({
               {(() => {
                 const catId = selectedDetailCat.puzzleId || "";
                 const isPlacedInHome = placedCats.some((c) => c.puzzleId === catId);
-                return isPlacedInHome ? (
-                  <button
-                    onClick={() => {
-                      const placedCat = placedCats.find((c) => c.puzzleId === catId);
-                      if (placedCat) {
-                        handleRemoveCat(placedCat.id);
-                      }
-                    }}
-                    className="w-full text-center bg-red-550 hover:bg-red-600 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs select-none"
-                  >
-                    ✖ Убрать из дома
-                  </button>
-                ) : (
+                return isPlacedInHome ? null : (
                   <button
                     onClick={() => {
                       handlePlaceCat(catId);
