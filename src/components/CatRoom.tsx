@@ -16,10 +16,10 @@ export const CAT_FAVORITE_TOYS: Record<string, { id: string; name: string; emoji
 
 // Cute buyable skins for golden yarn
 export const AVAILABLE_SKINS = [
-  { id: "bow", name: "Розовый Облик", emoji: "🎀", price: 3, desc: "+100% к пассивной пряже!" },
-  { id: "crown", name: "Принцессный Облик", emoji: "👑", price: 6, desc: "+100% к пассивной пряже!" },
-  { id: "gold", name: "Золотой Облик", emoji: "✨", price: 6, desc: "Драгоценное чистое золото! +100% к пряже!" },
-  { id: "galaxy", name: "Космический Облик", emoji: "🌌", price: 5, desc: "Облик межгалактической туманности! +100% к пряже!" },
+  { id: "bow", name: "Розовый Облик", emoji: "🎀", price: 3, desc: "+30% к пассивной пряже котика!" },
+  { id: "galaxy", name: "Космический Облик", emoji: "🌌", price: 5, desc: "+60% к пассивной пряже котика!" },
+  { id: "crown", name: "Принцессный Облик", emoji: "👑", price: 8, desc: "+80% к пассивной пряже котика!" },
+  { id: "gold", name: "Золотой Облик", emoji: "✨", price: 12, desc: "+120% к пассивной пряже котика!" },
 ];
 
 interface CatRoomProps {
@@ -125,6 +125,7 @@ export function CatRoom({
   
   const [activeSpeech, setActiveSpeech] = useState<{ [id: string]: string }>({});
   const [activeHeart, setActiveHeart] = useState<{ [id: string]: boolean }>({});
+  const [activeYarnReward, setActiveYarnReward] = useState<{ [id: string]: number }>({});
 
   // Passive income collection states
   const [accruedYarn, setAccruedYarn] = useState<number>(0);
@@ -169,9 +170,13 @@ export function CatRoom({
       const hasSynergy = favToy && placedCats.some((item) => item.puzzleId === favToy.id);
       const synergyAdd = hasSynergy ? 0.5 : 0; // +50% bonus yield
 
-      // Skin check: +100% bonus yield if wearing any accessory / hat skin
-      const hasSkin = !!equippedSkins[cat.puzzleId];
-      const skinAdd = hasSkin ? 1.0 : 0; // +100% bonus yield
+      // Skin check with dynamic multipliers based on accessory
+      const activeSkin = equippedSkins[cat.puzzleId];
+      let skinAdd = 0;
+      if (activeSkin === "bow") skinAdd = 0.30;       // +30%
+      else if (activeSkin === "galaxy") skinAdd = 0.60; // +60%
+      else if (activeSkin === "crown") skinAdd = 0.80;  // +80%
+      else if (activeSkin === "gold") skinAdd = 1.20;   // +120%
 
       rate += baseYield * (lvlMult + synergyAdd + skinAdd);
     });
@@ -180,10 +185,12 @@ export function CatRoom({
     let furnitureMult = 1.0;
     const placedShopIds = placedCats.filter(item => item.shopId).map(item => item.shopId);
 
-    if (placedShopIds.includes("cushion")) furnitureMult += 0.25; // Sofa gives +25%
-    if (placedShopIds.includes("golden_fish")) furnitureMult += 0.15; // Bowl gives +15%
-    if (placedShopIds.includes("tunnel")) furnitureMult += 0.15; // Box gives +15%
-    if (placedShopIds.includes("luxury_tower")) furnitureMult += 0.45; // Tower gives +45%
+    if (placedShopIds.includes("cushion")) furnitureMult += 0.25;       // Sofa gives +25%
+    if (placedShopIds.includes("golden_fish")) furnitureMult += 0.15;   // Bowl gives +15%
+    if (placedShopIds.includes("tunnel")) furnitureMult += 0.15;        // Box gives +15%
+    if (placedShopIds.includes("luxury_tower")) furnitureMult += 0.45;  // Tower gives +45%
+    if (placedShopIds.includes("cactus_scratch")) furnitureMult += 0.50;// Cactus gives +50%
+    if (placedShopIds.includes("aquarium")) furnitureMult += 0.30;      // Aquarium gives +30%
 
     return rate * furnitureMult;
   }, [placedCats, catLevels, equippedSkins, puzzleTemplates]);
@@ -197,6 +204,8 @@ export function CatRoom({
       { id: "golden_fish", name: "Миска с карасями 🥣", pct: 15 },
       { id: "tunnel", name: "Коробка мечты 📦", pct: 15 },
       { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", pct: 45 },
+      { id: "cactus_scratch", name: "Когтеточка-кактус 🌵", pct: 50 },
+      { id: "aquarium", name: "Аквариум с рыбками 🐠", pct: 30 },
     ];
 
     const activeItems = items.filter(it => placedShopIds.includes(it.id));
@@ -432,6 +441,12 @@ export function CatRoom({
     // Spawn floating heart
     setActiveHeart((prev) => ({ ...prev, [cat.id]: true }));
 
+    // Active instant petting reward in yarn based on cat level!
+    const lvl = catLevels[cat.puzzleId || ""] || 1;
+    const reward = lvl * 2;
+    updateYarn(yarnCount + reward);
+    setActiveYarnReward((prev) => ({ ...prev, [cat.id]: reward }));
+
     // Auto clear bubbles after 2.5s
     setTimeout(() => {
       setActiveSpeech((prev) => {
@@ -444,6 +459,14 @@ export function CatRoom({
     setTimeout(() => {
       setActiveHeart((prev) => ({ ...prev, [cat.id]: false }));
     }, 1200);
+
+    setTimeout(() => {
+      setActiveYarnReward((prev) => {
+        const copy = { ...prev };
+        delete copy[cat.id];
+        return copy;
+      });
+    }, 1500);
 
     // Randomize sleeping/flipping state slightly on click
     const updated = placedCats.map((c) => {
@@ -1261,6 +1284,20 @@ export function CatRoom({
                 )}
               </AnimatePresence>
 
+              {/* Floating Yarn Reward Effect */}
+              <AnimatePresence>
+                {activeYarnReward[cat.id] && (
+                  <motion.div
+                    key="yarn-reward"
+                    initial={{ opacity: 1, y: -10, x: 10, scale: 0.8 }}
+                    animate={{ opacity: 0, y: -70, x: 25, scale: 1.3 }}
+                    className="absolute left-1/2 -translate-x-1/2 text-amber-800 font-pixel font-black text-[9px] bg-amber-100/95 border border-amber-300 rounded-full px-1.5 py-0.5 whitespace-nowrap z-50 pointer-events-none shadow-2xs"
+                  >
+                    +{activeYarnReward[cat.id]} 🧶
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Cat Reposition D-PAD Overlay when hovering or tapping on it */}
               <div className="absolute -top-10 -left-6 hidden group-hover:flex gap-0.5 bg-slate-900/80 p-0.5 rounded-md shadow-lg z-50 select-none">
                 <button
@@ -1459,14 +1496,19 @@ export function CatRoom({
                   <span className="font-extrabold text-[#9c6644] flex items-center gap-1 font-mono text-xs">
                     🧶 +{(() => {
                       const level = catLevels[selectedDetailCat.puzzleId || ""] || 1;
-                      const hasSkin = !!equippedSkins[selectedDetailCat.puzzleId || ""];
+                      const activeSkin = equippedSkins[selectedDetailCat.puzzleId || ""];
                       const favToy = CAT_FAVORITE_TOYS[selectedDetailCat.puzzleId || ""];
                       const hasSynergy = favToy && placedCats.some(c => c.puzzleId === favToy.id);
                       
-                      const base = 0.05;
+                      const base = 0.10;
                       const lvlMult = 1 + (level - 1) * 0.25;
                       const synergyAdd = hasSynergy ? 0.5 : 0;
-                      const skinAdd = hasSkin ? 1.0 : 0;
+                      
+                      let skinAdd = 0;
+                      if (activeSkin === "bow") skinAdd = 0.30;
+                      else if (activeSkin === "galaxy") skinAdd = 0.60;
+                      else if (activeSkin === "crown") skinAdd = 0.80;
+                      else if (activeSkin === "gold") skinAdd = 1.20;
                       
                       return (base * (lvlMult + synergyAdd + skinAdd) * 60).toFixed(1);
                     })()} / мин
