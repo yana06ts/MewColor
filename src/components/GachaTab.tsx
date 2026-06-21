@@ -127,15 +127,15 @@ export function GachaTab({
       const rng = Math.random();
 
       if (rng < 0.35) {
-        // Roll standard Yarn Prize
-        const rngYarn = Math.random() > 0.5 ? 150 : 250;
+        // Roll standard Yarn Prize (balanced consolation refund)
+        const rngYarn = Math.random() > 0.5 ? 45 : 25;
         updateYarn((costType === "yarn" ? yarnCount - 100 : yarnCount) + rngYarn);
         rolledResults.push({
           type: "yarn",
           amount: rngYarn,
           title: `Обычная Пряжа (+${rngYarn} 🧶)`,
           emoji: "🧶",
-          desc: "Целый ворох мягких разноцветных ниточек для обустройства комнаты!",
+          desc: "Утешительный приз: мягкие ниточки для обустройства комнаты!",
         });
       } else if (rng < 0.55) {
         // Roll highly coveted Crystals Prize!
@@ -211,14 +211,14 @@ export function GachaTab({
         const rng = Math.random();
 
         if (rng < 0.35) {
-          const rngYarn = Math.random() > 0.5 ? 120 : 200;
+          const rngYarn = Math.random() > 0.5 ? 40 : 20;
           tempYarn += rngYarn;
           rolledResults.push({
             type: "yarn",
             amount: rngYarn,
             title: `Обычная Пряжа (+${rngYarn} 🧶)`,
             emoji: "🧶",
-            desc: "Нити для покупок красок!",
+            desc: "Утешительный приз: нити для покупок!",
           });
         } else if (rng < 0.55) {
           const rngCrystal = Math.random() > 0.6 ? 8 : 4;

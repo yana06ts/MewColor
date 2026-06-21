@@ -159,7 +159,7 @@ export function CatRoom({
       if (!cat.puzzleId) return;
 
       const level = catLevels[cat.puzzleId] || 1;
-      const baseYield = 0.05; // 0.05 yarn per second per cat = 3 yarn/minute base
+      const baseYield = 0.10; // 0.10 yarn per second per cat = 6 yarn/minute base
 
       // Level multiplier: Lvl 1 = 1.0, Lvl 2 = 1.25, Lvl 3 = 1.5, etc.
       const lvlMult = 1 + (level - 1) * 0.25;
@@ -238,8 +238,8 @@ export function CatRoom({
       const rawAccumulated = elapsedConstrained * currentRate;
       const calculatedYarn = Math.floor(rawAccumulated);
       
-      // Award 1 free spin coupon for every 150 regular yarn generated
-      const normalTickets = Math.floor(calculatedYarn / 150);
+      // Award 1 free spin coupon for every 200 regular yarn generated
+      const normalTickets = Math.floor(calculatedYarn / 200);
 
       // Award 1 extra ticket/coupon every 10 minutes (600s) for each active cat + favored toy pair in the shelter!
       let activeSynergiesCount = 0;
@@ -636,34 +636,6 @@ export function CatRoom({
                     finalColor = "#fffbeb"; // Glitter spark white-gold
                   } else {
                     finalColor = originalColor; // Keep original cat color
-                  }
-                }
-              } else if (activeSkin === "crown") {
-                if (isOutline) {
-                  finalColor = "#1e1b4b"; // Noble blue-indigo outlines
-                } else if (isEyes) {
-                  finalColor = "#eab308"; // Golden royal eyes
-                } else {
-                  // Add royal purple/gold pattern accents to the body
-                  const patternVal = (r + c) % 8;
-                  if (patternVal === 0) {
-                    finalColor = "#8b5cf6"; // Royal purple tip highlight
-                  } else {
-                    finalColor = originalColor;
-                  }
-                }
-              } else if (activeSkin === "bow") {
-                if (isOutline) {
-                  finalColor = "#4c0519"; // Sweet dark berry outline
-                } else if (isEyes) {
-                  finalColor = "#f43f5e"; // Lovely pink eyes
-                } else {
-                  // Add strawberry cream highlights
-                  const patternVal = (r * 2 + c) % 8;
-                  if (patternVal === 0) {
-                    finalColor = "#fce7f3"; // Soft pink dot decoration
-                  } else {
-                    finalColor = originalColor;
                   }
                 }
               }

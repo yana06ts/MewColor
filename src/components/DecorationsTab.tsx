@@ -36,10 +36,10 @@ export function DecorationsTab({
 }: DecorationsTabProps) {
   // 1. Direct buy items config
   const SHOP_ITEMS = [
-    { id: "cushion", name: "Королевский диван 🛋️", price: 30, description: "Просторный мягкий диван для дневного сна всей кошачьей банды. +25% к общей скорости сбора пряжи! ⚡" },
-    { id: "golden_fish", name: "Миска с карасями 🥣", price: 25, description: "Полная миска свежих карасей для сытого кошачьего мурчания. +15% к общей скорости сбора пряжи! ⚡" },
-    { id: "tunnel", name: "Коробка мечты 📦", price: 40, description: "Простая картонная коробка — идеальный замок для любого котика. +15% к общей скорости сбора пряжи! ⚡" },
-    { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 80, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками. +45% к общей скорости сбора пряжи! ⚡" },
+    { id: "cushion", name: "Королевский диван 🛋️", price: 220, description: "Просторный мягкий диван для дневного сна всей кошачьей банды. +25% к общей скорости сбора пряжи! ⚡" },
+    { id: "golden_fish", name: "Миска с карасями 🥣", price: 150, description: "Полная миска свежих карасей для сытого кошачьего мурчания. +15% к общей скорости сбора пряжи! ⚡" },
+    { id: "tunnel", name: "Коробка мечты 📦", price: 280, description: "Простая картонная коробка — идеальный замок для любого котика. +15% к общей скорости сбора пряжи! ⚡" },
+    { id: "luxury_tower", name: "Кото-Небоскрёб 🏰", price: 650, description: "Огромная пятиэтажная башня-лежанка с мягкими гамаками. +45% к общей скорости сбора пряжи! ⚡" },
     { id: "cactus_scratch", name: "Когтеточка-кактус 🌵", crystalPrice: 35, description: "Стильная премиальная когтеточка в форме зеленого кактуса для пушистых лапок. +50% к общей скорости сбора пряжи! ⚡" },
     { id: "aquarium", name: "Аквариум с рыбками 🐠", crystalPrice: 20, description: "Подводный мир прямо в комнате — котики в востовге от живых рыбок! +30% к общей скорости сбора пряжи! ⚡" },
   ];
@@ -47,9 +47,9 @@ export function DecorationsTab({
   // 2. Rug designs config
   const RUG_THEMES = [
     { id: "pink", name: "Розовое облако 🌸", price: 0, color: "bg-rose-200" },
-    { id: "blue", name: "Морская волна 💙", price: 35, color: "bg-sky-200" },
-    { id: "green", name: "Сочная травка 💚", price: 35, color: "bg-emerald-200" },
-    { id: "boho", name: "Горчичный пирог 💛", price: 35, color: "bg-amber-200" },
+    { id: "blue", name: "Морская волна 💙", price: 140, color: "bg-sky-200" },
+    { id: "green", name: "Сочная травка 💚", price: 140, color: "bg-emerald-200" },
+    { id: "boho", name: "Горчичный пирог 💛", price: 140, color: "bg-amber-200" },
     { id: "space_rug", name: "Звёздный ковер 🌌", crystalPrice: 15, color: "bg-indigo-900" },
     { id: "rainbow_rug", name: "Радужные лапки 🌈", crystalPrice: 12, color: "bg-fuchsia-300" },
     { id: "golden_royal", name: "Тронный ковёр 👑", crystalPrice: 20, color: "bg-yellow-500" },
@@ -59,8 +59,8 @@ export function DecorationsTab({
   // 3. Wallpapers config
   const WALLPAPER_THEMES = [
     { id: "stripes", name: "Уютная доска 🪵", price: 0, preview: "bg-orange-100" },
-    { id: "stars", name: "Звёздное небо 🌌", price: 45, preview: "bg-indigo-950" },
-    { id: "sakura", name: "Цветущая сакура 🌸", preview: "bg-pink-100", price: 45 },
+    { id: "stars", name: "Звёздное небо 🌌", price: 180, preview: "bg-indigo-950" },
+    { id: "sakura", name: "Цветущая сакура 🌸", preview: "bg-pink-100", price: 180 },
     { id: "neon_wallpaper", name: "Космические обои 👾", crystalPrice: 25, preview: "bg-purple-950" },
     { id: "mint_clouds", name: "Мятные облака ☁️", crystalPrice: 18, preview: "bg-teal-100" },
     { id: "golden_damask", name: "Золотой дамаск ⚜️", crystalPrice: 22, preview: "bg-amber-100" },
@@ -413,7 +413,7 @@ export function DecorationsTab({
                             className="bg-rose-400 text-white hover:bg-rose-500 px-3 py-1.5 rounded-xl text-[9px] font-pixel font-bold cursor-pointer transition-all flex items-center gap-1"
                           >
                             <span>🎨 Раскрасить</span>
-                            <span className="text-amber-200 font-bold">+{Math.max(15, Math.floor(toy.yarnReward * 0.40))}🧶</span>
+                            <span className="text-amber-200 font-bold">+{toy.yarnReward}🧶</span>
                           </button>
                         )}
                         
