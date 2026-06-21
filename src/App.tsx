@@ -450,7 +450,7 @@ export default function App() {
             {/* Title / Brand */}
             <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => setSelectedPuzzle(null)}>
               <div className="bg-white p-1 rounded-lg">
-                <Cat className="w-5 h-5 text-rose-500 animate-bounce" />
+                <Cat className="w-5 h-5 text-rose-500" />
               </div>
               <div className="flex flex-col leading-none">
                 <span className="text-xs font-pixel tracking-wider scale-90 origin-left">МЯУ-ДОКУ</span>
@@ -1300,6 +1300,46 @@ export default function App() {
                     desc: "Накопи 1000 или более обычной пряжи одновременно.",
                     gYarnReward: 10,
                     check: () => yarnCount >= 1000
+                  },
+                  {
+                    id: "three_cats",
+                    title: "Кошачий Приют 🐈‍⬛",
+                    desc: "Собери коллекцию из 3 завершённых картин с котиками.",
+                    gYarnReward: 10,
+                    check: () => {
+                      return completedPuzzles.filter(pId => {
+                        const templ = allAvailablePuzzles.find(t => t.id === pId);
+                        return templ && templ.category === "cats";
+                      }).length >= 3;
+                    }
+                  },
+                  {
+                    id: "gacha_hero",
+                    title: "Кошачья Удача 🎰",
+                    desc: "Открой хотя бы одного редкого кошачьего жителя через Коробку Удачи (Гачу).",
+                    gYarnReward: 12,
+                    check: () => gachaUnlockedCats && gachaUnlockedCats.length > 0
+                  },
+                  {
+                    id: "skin_collector",
+                    title: "Модный Показ 💅",
+                    desc: "Купи или разблокируй хотя бы один уникальный облик в гардеробе.",
+                    gYarnReward: 10,
+                    check: () => unlockedSkins && unlockedSkins.length > 0
+                  },
+                  {
+                    id: "giga_yarn",
+                    title: "Пряжный Магнат 🧶",
+                    desc: "Собери воедино 3000 или более обычной пряжи одновременно.",
+                    gYarnReward: 18,
+                    check: () => yarnCount >= 3000
+                  },
+                  {
+                    id: "golden_lord",
+                    title: "Драгоценные Камешки 💎",
+                    desc: "Накопи 30 или более мерцающих кристаллов одновременно.",
+                    gYarnReward: 15,
+                    check: () => goldYarnCount >= 30
                   }
                 ]).map((acc) => {
                   const isCompleted = acc.check();

@@ -16,10 +16,10 @@ export const CAT_FAVORITE_TOYS: Record<string, { id: string; name: string; emoji
 
 // Cute buyable skins for golden yarn
 export const AVAILABLE_SKINS = [
-  { id: "crown", name: "Корона Кошачьего Лорда", emoji: "👑", price: 6, desc: "+100% к пассивной пряже!" },
-  { id: "wizard", name: "Шляпа Кото-Мага", emoji: "🧙‍♂️", price: 5, desc: "+100% к пассивной пряже!" },
-  { id: "samurai", name: "Шлем Мяу-Самурая", emoji: "⚔️", price: 6, desc: "+100% к пассивной пряже!" },
-  { id: "bow", name: "Принцессный Розовый Бантик", emoji: "🎀", price: 3, desc: "+100% к пассивной пряже!" },
+  { id: "bow", name: "Розовый Облик", emoji: "🎀", price: 3, desc: "+100% к пассивной пряже!" },
+  { id: "crown", name: "Принцессный Облик", emoji: "👑", price: 6, desc: "+100% к пассивной пряже!" },
+  { id: "gold", name: "Золотой Облик", emoji: "✨", price: 6, desc: "Драгоценное чистое золото! +100% к пряже!" },
+  { id: "galaxy", name: "Космический Облик", emoji: "🌌", price: 5, desc: "Облик межгалактической туманности! +100% к пряже!" },
 ];
 
 interface CatRoomProps {
@@ -571,6 +571,8 @@ export function CatRoom({
     const template = puzzleTemplates.find((p) => p.id === puzzleId);
     if (!template) return null;
 
+    const activeSkin = equippedSkins[puzzleId];
+
     // Draw a small preview representation of the pixel mosaic!
     return (
       <div
@@ -585,11 +587,93 @@ export function CatRoom({
           row.split("").map((char, c) => {
             const num = char === "." ? 0 : parseInt(char, 10);
             const color = template.colors.find((colorInfo) => colorInfo.number === num);
+            
+            let finalColor = num === 0 ? "transparent" : color?.hex || "#999";
+            
+            if (num !== 0 && color && activeSkin) {
+              const colorName = color.name || "";
+              const isOutline = num === 1 || colorName.toLowerCase().includes("контур") || colorName.toLowerCase().includes("outline");
+              const isEyes = colorName.toLowerCase().includes("глаз") || colorName.toLowerCase().includes("бусинк") || colorName.toLowerCase().includes("eye");
+              const isCheeks = colorName.toLowerCase().includes("щёч") || colorName.toLowerCase().includes("щеч") || colorName.toLowerCase().includes("ноc") || colorName.toLowerCase().includes("нос") || colorName.toLowerCase().includes("cheek") || colorName.toLowerCase().includes("nose");
+
+              const originalColor = color?.hex || "#999";
+
+              if (activeSkin === "galaxy") {
+                if (isOutline) {
+                  finalColor = "#120b29"; // Dark cosmic violet outline
+                } else if (isEyes) {
+                  finalColor = "#22d3ee"; // Radiant space cyan eyes
+                } else if (isCheeks) {
+                  finalColor = "#f43f5e"; // Glowing pink cheeks
+                } else {
+                  // Maintain original color as the base, but weave sparkling stardust elements!
+                  const patternVal = (r * 7 + c * 13) % 4;
+                  if (patternVal === 0) {
+                    finalColor = "#a855f7"; // Twinkling purple stardust
+                  } else if (patternVal === 1) {
+                    finalColor = "#6366f1"; // Twinkling indigo stardust
+                  } else if (patternVal === 2) {
+                    finalColor = "#ec4899"; // Cosmic magenta dust
+                  } else {
+                    finalColor = originalColor; // Keep original cat pattern base
+                  }
+                }
+              } else if (activeSkin === "gold") {
+                if (isOutline) {
+                  finalColor = "#3d2203"; // Rich dark chocolate/gold bronze contour
+                } else if (isEyes) {
+                  finalColor = "#10b981"; // Precious emerald jewel eyes
+                } else if (isCheeks) {
+                  finalColor = "#fb923c"; // Sparkling amber nose/lips
+                } else {
+                  // Keep original layout, but blend pure glittering gold spots!
+                  const patternVal = (r * 11 + c * 3) % 4;
+                  if (patternVal === 0) {
+                    finalColor = "#fbbf24"; // Bright gold highlight
+                  } else if (patternVal === 1) {
+                    finalColor = "#f59e0b"; // Warm gold highlight
+                  } else if (patternVal === 2) {
+                    finalColor = "#fffbeb"; // Glitter spark white-gold
+                  } else {
+                    finalColor = originalColor; // Keep original cat color
+                  }
+                }
+              } else if (activeSkin === "crown") {
+                if (isOutline) {
+                  finalColor = "#1e1b4b"; // Noble blue-indigo outlines
+                } else if (isEyes) {
+                  finalColor = "#eab308"; // Golden royal eyes
+                } else {
+                  // Add royal purple/gold pattern accents to the body
+                  const patternVal = (r + c) % 8;
+                  if (patternVal === 0) {
+                    finalColor = "#8b5cf6"; // Royal purple tip highlight
+                  } else {
+                    finalColor = originalColor;
+                  }
+                }
+              } else if (activeSkin === "bow") {
+                if (isOutline) {
+                  finalColor = "#4c0519"; // Sweet dark berry outline
+                } else if (isEyes) {
+                  finalColor = "#f43f5e"; // Lovely pink eyes
+                } else {
+                  // Add strawberry cream highlights
+                  const patternVal = (r * 2 + c) % 8;
+                  if (patternVal === 0) {
+                    finalColor = "#fce7f3"; // Soft pink dot decoration
+                  } else {
+                    finalColor = originalColor;
+                  }
+                }
+              }
+            }
+
             return (
               <div
                 key={`${r}-${c}`}
                 style={{
-                  backgroundColor: num === 0 ? "transparent" : color?.hex || "#999",
+                  backgroundColor: finalColor,
                 }}
               />
             );
@@ -1255,8 +1339,8 @@ export function CatRoom({
                 {cat.puzzleId && equippedSkins[cat.puzzleId] && (
                   <div className="absolute -top-4.5 left-4.5 text-xl z-30 pointer-events-none select-none drop-shadow-md animate-bounce" style={{ animationDuration: "3s" }}>
                     {equippedSkins[cat.puzzleId] === "crown" && "👑"}
-                    {equippedSkins[cat.puzzleId] === "wizard" && "🧙‍♂️"}
-                    {equippedSkins[cat.puzzleId] === "samurai" && "⚔️"}
+                    {equippedSkins[cat.puzzleId] === "galaxy" && "🌌"}
+                    {equippedSkins[cat.puzzleId] === "gold" && "✨"}
                     {equippedSkins[cat.puzzleId] === "bow" && "🎀"}
                   </div>
                 )}
@@ -1612,35 +1696,6 @@ export function CatRoom({
                 </div>
               </div>
 
-              {/* Home placement toggler inside details */}
-              {(() => {
-                const catId = selectedDetailCat.puzzleId || "";
-                const isPlacedInHome = placedCats.some((c) => c.puzzleId === catId);
-                return isPlacedInHome ? null : (
-                  <button
-                    onClick={() => {
-                      handlePlaceCat(catId);
-                    }}
-                    className="w-full text-center bg-emerald-550 hover:bg-emerald-600 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs select-none"
-                  >
-                    🏠 Поставить в дом
-                  </button>
-                );
-              })()}
-
-              {/* Action play button */}
-              <button
-                onClick={() => {
-                  const randomPhrase = CAT_MEOWS_TEXT[Math.floor(Math.random() * CAT_MEOWS_TEXT.length)];
-                  setActiveSpeech((prev) => ({ ...prev, [selectedDetailCat.id]: randomPhrase }));
-                  setActiveHeart((prev) => ({ ...prev, [selectedDetailCat.id]: true }));
-                  SOUNDS.playMeow();
-                  setSelectedDetailCat(null);
-                }}
-                className="w-full text-center bg-rose-450 hover:bg-rose-550 text-white py-2 rounded-2xl text-[10px] font-bold font-pixel cursor-pointer transition-all uppercase shadow-xs mt-0.5"
-              >
-                Погладить Котика
-              </button>
               </div> {/* End scrollable inner area */}
             </motion.div>
           </div>
