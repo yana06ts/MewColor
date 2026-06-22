@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Gift, Sparkles, AlertCircle, ShoppingBag, ArrowRight } from "lucide-react";
-import { PuzzleTemplate } from "../data/puzzles";
+import { PuzzleTemplate, GACHA_EXCLUSIVE_PUZZLES } from "../data/puzzles";
 
 // Simple Sound proxy matching our utility sound.ts
 const playSound = (type: "pop" | "meow" | "error" | "complete" | "successColor") => {
@@ -73,6 +73,8 @@ interface GachaTabProps {
   updateGachaUnlockedCats: (val: string[]) => void;
   catDuplicates: Record<string, number>;
   updateCatDuplicates: (val: Record<string, number>) => void;
+  unlockedGachaPuzzleIds: string[];
+  updateUnlockedGachaPuzzleIds: (val: string[]) => void;
 }
 
 export function GachaTab({
@@ -91,6 +93,8 @@ export function GachaTab({
   updateGachaUnlockedCats,
   catDuplicates,
   updateCatDuplicates,
+  unlockedGachaPuzzleIds,
+  updateUnlockedGachaPuzzleIds,
 }: GachaTabProps) {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [activeDrawResult, setActiveDrawResult] = useState<any[] | null>(null);
@@ -126,7 +130,7 @@ export function GachaTab({
       const rolledResults = [];
       const rng = Math.random();
 
-      if (rng < 0.35) {
+      if (rng < 0.25) {
         // Roll standard Yarn Prize (balanced consolation refund)
         const rngYarn = Math.random() > 0.5 ? 45 : 25;
         updateYarn((costType === "yarn" ? yarnCount - 100 : yarnCount) + rngYarn);
@@ -137,7 +141,7 @@ export function GachaTab({
           emoji: "🧶",
           desc: "Утешительный приз: мягкие ниточки для обустройства комнаты!",
         });
-      } else if (rng < 0.55) {
+      } else if (rng < 0.45) {
         // Roll highly coveted Crystals Prize!
         const rngCrystal = Math.random() > 0.6 ? 10 : 5;
         updateGoldYarn(goldYarnCount + rngCrystal);
@@ -148,6 +152,33 @@ export function GachaTab({
           emoji: "💎",
           desc: "Редкие сияющие кристаллы! Используй их для покупки красивых костюмов и шляпок.",
         });
+      } else if (rng < 0.65) {
+        // Roll Gacha-exclusive coloring pages!
+        const lockedExclusivePuzzles = GACHA_EXCLUSIVE_PUZZLES.filter(p => !unlockedGachaPuzzleIds.includes(p.id));
+        if (lockedExclusivePuzzles.length > 0) {
+          const chosenPuzzle = lockedExclusivePuzzles[Math.floor(Math.random() * lockedExclusivePuzzles.length)];
+          const nextSaved = [...unlockedGachaPuzzleIds, chosenPuzzle.id];
+          updateUnlockedGachaPuzzleIds(nextSaved);
+
+          rolledResults.push({
+            type: "puzzle_unlock",
+            puzzleId: chosenPuzzle.id,
+            title: `Новая Раскраска: ${chosenPuzzle.name.split(" ")[0] || ""} ${chosenPuzzle.name}`,
+            emoji: "🎨✨",
+            desc: `Ура! Вы выиграли секретную раскраску: "${chosenPuzzle.name}"! Она уже ждет вас во вкладке «Раскраски» для закрашивания!`,
+          });
+        } else {
+          // If all already unlocked, give a big consolation bonus of Crystals!
+          const rngCrystal = Math.random() > 0.5 ? 12 : 8;
+          updateGoldYarn(goldYarnCount + rngCrystal);
+          rolledResults.push({
+            type: "crystals_consolation",
+            amount: rngCrystal,
+            title: `Кристаллы (+${rngCrystal} 💎)`,
+            emoji: "💎✨",
+            desc: "Вы уже открыли все эксклюзивные раскраски автомата! Взамен вы получаете весомую горсть кристаллов!",
+          });
+        }
       } else {
         // Roll a cat summon/duplicate
         const chosenCat = poolCats[Math.floor(Math.random() * poolCats.length)];
@@ -206,11 +237,12 @@ export function GachaTab({
       let tempCrystals = goldYarnCount;
       const tempGachaUnlocked = [...gachaUnlockedCats];
       const tempDuplicates = { ...catDuplicates };
+      let tempGachaPuzzles = [...unlockedGachaPuzzleIds];
 
       for (let i = 0; i < 5; i++) {
         const rng = Math.random();
 
-        if (rng < 0.35) {
+        if (rng < 0.25) {
           const rngYarn = Math.random() > 0.5 ? 40 : 20;
           tempYarn += rngYarn;
           rolledResults.push({
@@ -220,7 +252,7 @@ export function GachaTab({
             emoji: "🧶",
             desc: "Утешительный приз: нити для покупок!",
           });
-        } else if (rng < 0.55) {
+        } else if (rng < 0.45) {
           const rngCrystal = Math.random() > 0.6 ? 8 : 4;
           tempCrystals += rngCrystal;
           rolledResults.push({
@@ -230,6 +262,31 @@ export function GachaTab({
             emoji: "💎",
             desc: "Сияющие драгоценные камни!",
           });
+        } else if (rng < 0.65) {
+          // Gacha-exclusive coloring pages!
+          const lockedExclusivePuzzles = GACHA_EXCLUSIVE_PUZZLES.filter(p => !tempGachaPuzzles.includes(p.id));
+          if (lockedExclusivePuzzles.length > 0) {
+            const chosenPuzzle = lockedExclusivePuzzles[Math.floor(Math.random() * lockedExclusivePuzzles.length)];
+            tempGachaPuzzles.push(chosenPuzzle.id);
+
+            rolledResults.push({
+              type: "puzzle_unlock",
+              puzzleId: chosenPuzzle.id,
+              title: `Раскраска: ${chosenPuzzle.name}`,
+              emoji: "🎨✨",
+              desc: `Вы выиграли эксклюзивную раскраску: "${chosenPuzzle.name}"! Ищи её в главном меню.`,
+            });
+          } else {
+            const rngCrystal = Math.random() > 0.5 ? 10 : 6;
+            tempCrystals += rngCrystal;
+            rolledResults.push({
+              type: "crystals_consolation",
+              amount: rngCrystal,
+              title: `Кристаллы (+${rngCrystal} 💎)`,
+              emoji: "💎✨",
+              desc: "Все эксклюзивные раскраски уже получены! Начислена компенсация в кристаллах.",
+            });
+          }
         } else {
           const chosenCat = poolCats[Math.floor(Math.random() * poolCats.length)];
           const isUnlocked = completedPuzzles.includes(chosenCat.id) || tempGachaUnlocked.includes(chosenCat.id);
@@ -262,6 +319,7 @@ export function GachaTab({
       updateGoldYarn(tempCrystals);
       updateGachaUnlockedCats(tempGachaUnlocked);
       updateCatDuplicates(tempDuplicates);
+      updateUnlockedGachaPuzzleIds(tempGachaPuzzles);
 
       setActiveDrawResult(rolledResults);
       setIsDrawing(false);
@@ -403,9 +461,10 @@ export function GachaTab({
         <div className="space-y-0.5">
           <p className="font-bold text-slate-700 font-pixel text-[9px] uppercase">Шансы получения предметов в коробке:</p>
           <ul className="text-[8px] list-disc pl-3 font-medium text-slate-500 space-y-0.5">
-            <li><strong className="text-slate-650">Обычная Пряжа (35% вероятность)</strong> — выпадает от 120 до 250 мотков.</li>
-            <li><strong className="text-slate-650">Кристаллы (20% вероятность)</strong> — выпадает от 4 до 10 редких сияющих кристаллов 💎.</li>
-            <li><strong className="text-slate-650">Кошачий призыв (45% вероятность)</strong> — шанс открыть нового котика в комнате! Если этот котик у вас уже разблокирован, вы получаете карточку его дубликата 🎁 для прокачки уровней в Кошачьем доме.</li>
+            <li><strong className="text-slate-650">Обычная Пряжа (25% вероятность)</strong> — выпадает от 20 до 45 мотков.</li>
+            <li><strong className="text-slate-650">Кристаллы (20% вероятность)</strong> — выпадает до 10 ценнейших кристаллов 💎.</li>
+            <li><strong className="text-slate-650">Секретные раскраски (20% вероятность)</strong> — выигрывай новые эксклюзивные раскраски 🎨 («Космический котик», «Драконий фрукт» и др.) и раскрашивай их с нуля!</li>
+            <li><strong className="text-slate-650">Кошачий призыв (35% вероятность)</strong> — шанс открыть нового котика в комнате 🐱! Если он уже открыт, ты получишь ценный дубликат 🎁 для прокачки уровней.</li>
           </ul>
         </div>
       </div>

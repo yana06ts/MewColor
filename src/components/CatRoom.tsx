@@ -1646,21 +1646,49 @@ export function CatRoom({
                 </h4>
 
                 <div className="grid grid-cols-2 gap-2">
-                  {AVAILABLE_SKINS.map((skin) => {
+                  {AVAILABLE_SKINS.map((skin, index) => {
                     const skinKey = `${selectedDetailCat.puzzleId || ""}_${skin.id}`;
                     const isUnlocked = unlockedSkins.includes(skinKey);
                     const isEquipped = equippedSkins[selectedDetailCat.puzzleId || ""] === skin.id;
+
+                    // Order verification: must unlock previous skins first
+                    let isLockedByOrder = false;
+                    let previousSkinName = "";
+                    if (index > 0 && !isUnlocked) {
+                      const prevSkin = AVAILABLE_SKINS[index - 1];
+                      const prevSkinKey = `${selectedDetailCat.puzzleId || ""}_${prevSkin.id}`;
+                      if (!unlockedSkins.includes(prevSkinKey)) {
+                        isLockedByOrder = true;
+                        previousSkinName = prevSkin.name;
+                      }
+                    }
 
                     return (
                       <div
                         key={skin.id}
                         className={`p-2 rounded-xl border flex flex-col items-center text-center transition-all ${
-                          isEquipped ? "border-rose-400 bg-rose-50/20" : "border-slate-100 bg-slate-50/50 hover:bg-slate-50"
+                          isEquipped
+                            ? "border-rose-400 bg-rose-50/20"
+                            : isLockedByOrder
+                            ? "border-slate-100 bg-slate-200/40 opacity-75"
+                            : "border-slate-100 bg-slate-50/50 hover:bg-slate-50"
                         }`}
                       >
-                        <span className="text-xl drop-shadow-sm mb-1">{skin.emoji}</span>
-                        <span className="text-[9.5px] font-bold text-slate-850 line-clamp-1">{skin.name}</span>
-                        <span className="text-[8px] text-amber-600 font-pixel font-bold">{skin.desc}</span>
+                        <span className="text-xl drop-shadow-sm mb-1">
+                          {isLockedByOrder ? "🔒" : skin.emoji}
+                        </span>
+                        <span className="text-[9.5px] font-bold text-slate-850 line-clamp-1">
+                          {skin.name}
+                        </span>
+                        <span className="text-[8px] text-amber-600 font-pixel font-bold">
+                          {skin.desc}
+                        </span>
+
+                        {isLockedByOrder && (
+                          <span className="text-[7.5px] text-rose-500 font-sans font-semibold mt-1 leading-tight">
+                            Нужен: {previousSkinName}
+                          </span>
+                        )}
 
                         <div className="w-full mt-2">
                           {isEquipped ? (
@@ -1689,6 +1717,11 @@ export function CatRoom({
                           ) : (
                             <button
                               onClick={() => {
+                                if (isLockedByOrder) {
+                                  SOUNDS.playError();
+                                  alert(`Этот облик заблокирован! Сначала необходимо купить предыдущий костюм: "${previousSkinName}".`);
+                                  return;
+                                }
                                 if (goldYarnCount < skin.price) {
                                   SOUNDS.playError();
                                   alert("Не хватает кристаллов! Попробуй выполнить достижения или открыть Коробку Удачи.");
@@ -1698,9 +1731,13 @@ export function CatRoom({
                                 updateUnlockedSkins([...unlockedSkins, skinKey]);
                                 SOUNDS.playSuccessColor();
                               }}
-                              className="w-full text-center bg-sky-500 hover:bg-sky-600 text-white text-[8px] font-pixel font-extrabold py-1.5 rounded-md cursor-pointer shadow-xs uppercase tracking-tight"
+                              className={`w-full text-center text-[8px] font-pixel font-extrabold py-1.5 rounded-md cursor-pointer shadow-xs uppercase tracking-tight ${
+                                isLockedByOrder
+                                  ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+                                  : "bg-sky-500 hover:bg-sky-600 text-white"
+                              }`}
                             >
-                              Купить за {skin.price} 💎
+                              {isLockedByOrder ? "🔒 Закрыто" : `Купить за ${skin.price} 💎`}
                             </button>
                           )}
                         </div>

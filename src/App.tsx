@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PUZZLE_TEMPLATES, createInitialProgress, PuzzleTemplate, CellProgress } from "./data/puzzles";
+import { PUZZLE_TEMPLATES, createInitialProgress, PuzzleTemplate, CellProgress, GACHA_EXCLUSIVE_PUZZLES } from "./data/puzzles";
 import { PixelGrid } from "./components/PixelGrid";
 import { CatRoom } from "./components/CatRoom";
 import { DecorationsTab } from "./components/DecorationsTab";
@@ -48,6 +48,7 @@ export default function App() {
   const [claimedAchievements, setClaimedAchievements] = useState<string[]>([]);
   const [gachaUnlockedCats, setGachaUnlockedCats] = useState<string[]>([]);
   const [catDuplicates, setCatDuplicates] = useState<Record<string, number>>({});
+  const [unlockedGachaPuzzleIds, setUnlockedGachaPuzzleIds] = useState<string[]>([]);
 
   // 2. Navigation states
   const [activeTab, setActiveTab] = useState<"puzzles" | "room" | "decorations" | "gacha">("puzzles");
@@ -169,6 +170,13 @@ export default function App() {
       } catch (e) {}
     }
 
+    const savedGachaPuzzles = localStorage.getItem("meowcolor_unlocked_gacha_puzzles");
+    if (savedGachaPuzzles) {
+      try {
+        setUnlockedGachaPuzzleIds(JSON.parse(savedGachaPuzzles));
+      } catch (e) {}
+    }
+
     // Sound prefer
     const savedSound = localStorage.getItem("meowcolor_sound_on");
     if (savedSound !== null) {
@@ -207,6 +215,11 @@ export default function App() {
   const updateCatDuplicates = (newVal: Record<string, number>) => {
     setCatDuplicates(newVal);
     localStorage.setItem("meowcolor_cat_duplicates", JSON.stringify(newVal));
+  };
+
+  const updateUnlockedGachaPuzzleIds = (newVal: string[]) => {
+    setUnlockedGachaPuzzleIds(newVal);
+    localStorage.setItem("meowcolor_unlocked_gacha_puzzles", JSON.stringify(newVal));
   };
 
   const updateEquippedSkins = (newVal: Record<string, string>) => {
@@ -428,8 +441,12 @@ export default function App() {
     SOUNDS.playPop(1.1 + selectedSandboxColorIndex * 0.1);
   };
 
-  // Combine puzzle templates loaded from system data and current custom creations
-  const allAvailablePuzzles = [...customPuzzles, ...PUZZLE_TEMPLATES];
+  // Combine puzzle templates loaded from system data, unlocked gacha-exclusives and current custom creations
+  const allAvailablePuzzles = [
+    ...customPuzzles,
+    ...PUZZLE_TEMPLATES,
+    ...GACHA_EXCLUSIVE_PUZZLES.filter(p => unlockedGachaPuzzleIds.includes(p.id))
+  ];
 
   // Filter puzzles based on selected tabs/category
   const filteredPuzzles = allAvailablePuzzles.filter((p) => {
@@ -822,6 +839,8 @@ export default function App() {
                   updateGachaUnlockedCats={updateGachaUnlockedCats}
                   catDuplicates={catDuplicates}
                   updateCatDuplicates={updateCatDuplicates}
+                  unlockedGachaPuzzleIds={unlockedGachaPuzzleIds}
+                  updateUnlockedGachaPuzzleIds={updateUnlockedGachaPuzzleIds}
                 />
               </div>
             )}
