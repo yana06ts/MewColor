@@ -5,6 +5,7 @@ import { CatRoom } from "./components/CatRoom";
 import { DecorationsTab } from "./components/DecorationsTab";
 import { GachaTab } from "./components/GachaTab";
 import SOUNDS from "./utils/sound";
+const startBg = new URL("./assets/images/meow_start_bg_1782757170611.jpg", import.meta.url).href;
 import {
   Sparkles,
   Cat,
@@ -28,10 +29,17 @@ import {
   Pencil,
   Settings,
   Trophy,
-  Ticket
+  Ticket,
+  Play,
+  LogOut
 } from "lucide-react";
 
 export default function App() {
+
+  // 0. Start screen states
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
+  const [showExitScreen, setShowExitScreen] = useState<boolean>(false);
 
   // 1. Core user states
   const [completedPuzzles, setCompletedPuzzles] = useState<string[]>([]);
@@ -458,10 +466,136 @@ export default function App() {
     <div className="h-[100dvh] w-screen bg-[#F0E6D2] font-sans antialiased text-slate-800 flex justify-center items-center overflow-hidden">
       {/* Phone visual Mockup frame container for flawless mobile presentation */}
       <div className="w-full h-full max-w-md bg-white shadow-2xl flex flex-col relative overflow-hidden border-rose-300/40 md:h-[94vh] md:max-h-[850px] md:rounded-[36px] md:border-8">
-        
+        {!gameStarted ? (
+          /* Start Screen with full height & beautiful background image */
+          <div 
+            className="flex-1 relative flex flex-col justify-between p-6 select-none bg-cover bg-center text-white overflow-hidden animate-fade-in"
+            style={{ backgroundImage: `url(${startBg})` }}
+          >
+            {/* Dark blur/overlay overlay for elegant text contrast */}
+            <div className="absolute inset-0 bg-slate-950/40 z-0" />
+            
+            {/* Top section: sound controls & brand styling */}
+            <div className="relative z-10 flex justify-between items-center w-full">
+              <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 shadow-xs">
+                <Cat className="w-4 h-4 text-rose-300 animate-pulse" />
+                <span className="text-[10px] font-pixel text-rose-100 uppercase tracking-widest font-bold">v2.1</span>
+              </div>
+              
+              <button
+                onClick={handleToggleSound}
+                className="p-2 bg-white/20 hover:bg-white/35 backdrop-blur-md text-white rounded-full transition-all border border-white/25 shadow-xs cursor-pointer active:scale-90"
+              >
+                {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </button>
+            </div>
 
-        {/* 1. Header Area with Cozy design cues */}
-        <header className="bg-rose-400 text-white px-4 py-3 shrink-0 flex flex-col shadow-xs select-none">
+            {/* Middle Section: Big, colorful, styled title */}
+            <div className="relative z-10 flex flex-col items-center justify-center text-center my-auto px-2">
+              <h1 className="text-4xl font-pixel tracking-tight text-white font-extrabold select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] filter">
+                МЯУ-ДОКУ
+              </h1>
+              <p className="text-xs font-semibold tracking-wider text-rose-100 uppercase mt-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                Яркая Кошачья Раскраска
+              </p>
+            </div>
+
+            {/* Bottom section: Play & Exit Buttons */}
+            <div className="relative z-10 flex flex-col gap-3.5 w-full max-w-[280px] mx-auto pb-4 shrink-0">
+              <button
+                onClick={() => {
+                  setGameStarted(true);
+                  SOUNDS.playCompleteLevel(); // Play a lovely chime
+                }}
+                className="w-full bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-slate-950 font-bold p-4 rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(16,185,129,0.4)] border border-emerald-300/30 hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer font-pixel text-xs tracking-wider uppercase animate-pulse"
+              >
+                <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
+                Играть 🐾
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowExitConfirm(true);
+                  SOUNDS.playPop(0.9);
+                }}
+                className="w-full bg-white/15 hover:bg-white/25 backdrop-blur-md text-white border border-white/25 p-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-xs transition-all duration-200 active:scale-95 cursor-pointer text-xs font-semibold"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Выход
+              </button>
+            </div>
+
+            {/* Exit confirmation overlay */}
+            {showExitConfirm && (
+              <div className="absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col justify-center items-center p-6 text-center animate-fade-in">
+                <div className="bg-slate-900/90 border border-rose-300/20 rounded-3xl p-6 max-w-[280px] shadow-2xl">
+                  <span className="text-4xl block mb-3 animate-bounce">🐾😿</span>
+                  <h3 className="text-xs font-pixel text-rose-300 uppercase leading-snug">
+                    Уже уходишь?
+                  </h3>
+                  <p className="text-[10px] text-slate-300 mt-2 leading-relaxed font-semibold">
+                    Котики будут очень скучать без твоего внимания и ярких красок! Останься ещё ненадолго. ❤️
+                  </p>
+                  
+                  <div className="flex flex-col gap-2 mt-5">
+                    <button
+                      onClick={() => {
+                        setShowExitConfirm(false);
+                        SOUNDS.playPop(1.1);
+                      }}
+                      className="w-full bg-rose-500 hover:bg-rose-400 text-white font-bold p-2.5 rounded-xl text-xs transition-colors cursor-pointer font-semibold"
+                    >
+                      Остаться с котиками 🐱
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowExitConfirm(false);
+                        setShowExitScreen(true);
+                        SOUNDS.playPop(0.7);
+                      }}
+                      className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs transition-colors cursor-pointer border border-slate-700 font-semibold"
+                    >
+                      Да, выйти 🚪
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Exit Farewell Screen */}
+            {showExitScreen && (
+              <div 
+                className="absolute inset-0 z-50 bg-slate-950 flex flex-col justify-center items-center p-6 text-center animate-fade-in bg-cover bg-center" 
+                style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.95)), url(${startBg})` }}
+              >
+                <div className="max-w-[280px] flex flex-col items-center">
+                  <div className="w-20 h-20 bg-rose-500/10 rounded-full border border-rose-500/30 flex items-center justify-center mb-4 text-3xl animate-pulse">
+                    😻💤
+                  </div>
+                  <h2 className="text-sm font-pixel text-white uppercase leading-snug">
+                    Спасибо за игру!
+                  </h2>
+                  <p className="text-[10px] text-rose-100/70 mt-3 leading-relaxed font-semibold">
+                    Котики уснули сладким сном в ожидании твоего возвращения. Твой прогресс надёжно сохранён на этом устройстве!
+                  </p>
+                  
+                  <button
+                    onClick={() => {
+                      setShowExitScreen(false);
+                      SOUNDS.playCompleteLevel();
+                    }}
+                    className="mt-8 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold px-6 py-3 rounded-2xl text-xs tracking-wider uppercase shadow-md active:scale-95 transition-all cursor-pointer font-pixel"
+                  >
+                    Вернуться к меню
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* 1. Header Area with Cozy design cues */}
+            <header className="bg-rose-400 text-white px-4 py-3 shrink-0 flex flex-col shadow-xs select-none">
           <div className="flex justify-between items-center">
             
             {/* Title / Brand */}
@@ -888,6 +1022,9 @@ export default function App() {
 
             </div>
           </footer>
+        )}
+
+          </>
         )}
 
 
